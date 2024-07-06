@@ -1,0 +1,14 @@
+{
+    "items": [
+        {
+            "name": "google-photos",
+            "sourceDir": "/mnt/c/Users/karan/Desktop/KARAN'S FOLDER/google-photos/Downloads",
+            "destDir": "/mnt/d/KARAN'S FOLDER/google-photos-backups"
+        },
+        {
+            "name": "google-drive",
+            "sourceDir": "google-drive:/google-drive/work",
+            "destDir": "/mnt/d/KARAN'S FOLDER/google-drive-backup"
+        }
+    ]
+}

@@ -7,24 +7,16 @@ import (
 	"github.com/ansel1/merry/v2"
 )
 
-// BackupConfigItem represents a config item from the config file
-type BackupConfigItem struct {
-	// Name of the config
-	Name string `json:"name"`
+type HistoryFile struct {
+	Year string `json:"Year"`
 
-	// Source directory to be backed up
-	// Can be a "remote" of form "<RCLONE_REMOTE_NAME>:"
-	SourceDir string `json:"sourceDir"`
-
-	// Destination directory to be backed up to
-	// Can be a "remote" of form "<RCLONE_REMOTE_NAME>:"
-	DestDir string `json:"destDir"`
+	Path string `json:"Path"`
 }
 
 // Config Represents the backup config from the config file
 type Config struct {
 	// Items that are in the file
-	BackupConfigItem []BackupConfigItem `json:"items"`
+	HistoryFiles []HistoryFile `json:"historyFiles"`
 }
 
 // ParseConfigFile reads and marshals the file into a Config type struct

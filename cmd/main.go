@@ -8,8 +8,10 @@ import (
 	"path"
 
 	"github.com/ansel1/merry/v2"
+	"github.com/go-logr/logr"
 	"trading212-parser.kimi450.com/pkg/config"
 	"trading212-parser.kimi450.com/pkg/logging"
+	"trading212-parser.kimi450.com/pkg/trading212"
 )
 
 type ScriptArgs struct {
@@ -78,13 +80,46 @@ func (scriptArgs *ScriptArgs) run() {
 
 	log.Info("log bundle directory", "filePath", logBundleDir)
 
-	_, err = config.ParseConfigFile(scriptArgs.Config)
+	configData, err := config.ParseConfigFile(scriptArgs.Config)
 	if err != nil {
 		log.Error(err, "failed to parse config")
 		os.Exit(1)
 	}
 
 	log.Info("script args passed", "scriptArgs", scriptArgs)
+
+	for _, historyFile := range configData.HistoryFiles {
+		log.Info("processing file", "year", historyFile.Year, "path", historyFile.Path)
+
+		err := processFile(log, historyFile)
+		if err != nil {
+			log.Error(err, "failed to process file",
+				"year", historyFile.Year, "path", historyFile.Path)
+			os.Exit(1)
+		}
+	}
+}
+
+func processFile(log logr.Logger, historyFile config.HistoryFile) error {
+	file, err := os.Open(historyFile.Path)
+	if err != nil {
+		return merry.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+
+	// read csv values using csv.Reader
+	csvReader := trading212.NewScanner(file)
+	for csvReader.Scan() {
+		record, err := csvReader.ToRecord()
+		if err != nil {
+			return merry.Errorf("failed to process file: %w", err)
+		}
+		if record.StampDutyReserveTax != "" {
+			log.Info("record", "data", record)
+		}
+	}
+
+	return nil
 }
 
 func main() {

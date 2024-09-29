@@ -1,14 +1,16 @@
 {
-    "items": [
+    "historyFiles": [
         {
-            "name": "google-photos",
-            "sourceDir": "/mnt/c/Users/karan/Desktop/KARAN'S FOLDER/google-photos/Downloads",
-            "destDir": "/mnt/d/KARAN'S FOLDER/google-photos-backups"
+            "Year": "2022",
+            "Path": "/mnt/d/20240929-trading-212-history-from_2022-03-06_to_2022-12-31_MTcyNzYwMzc3ODk2OA.csv"
         },
         {
-            "name": "google-drive",
-            "sourceDir": "google-drive:/google-drive/work",
-            "destDir": "/mnt/d/KARAN'S FOLDER/google-drive-backup"
+            "Year": "2023",
+            "Path": "/mnt/d/20240929-trading-212-history-from_2023-01-01_to_2023-12-31_MTcyNzYwMzgxMzE2NQ.csv"
+        },
+        {
+            "Year": "2024",
+            "Path": "/mnt/d/20240929-trading-212-history-from_2024-01-01_to_2024-09-29_MTcyNzYwMzgzNDc4Nw.csv"
         }
     ]
 }

@@ -12,6 +12,8 @@ import (
 // GetDefaultFileAndConsoleLogger configures and creates a logr.Logger instance
 func GetDefaultFileAndConsoleLogger(filePath string, jsonEncoding bool) (*zap.Logger, logr.Logger, error) {
 	zapConfig := zap.NewProductionConfig()
+	zapConfig.Sampling = nil
+
 	zapConfig.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
 	zapConfig.OutputPaths = []string{"stderr", filePath}
 	zapConfig.ErrorOutputPaths = []string{"stderr", filePath}

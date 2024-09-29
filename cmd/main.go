@@ -107,6 +107,13 @@ func processFile(log logr.Logger, historyFile config.HistoryFile) error {
 	}
 	defer file.Close()
 
+	if historyFile.Year != "2024" {
+		// TODO test
+		return nil
+	}
+
+	bookkeeper := trading212.NewBookkeeper()
+
 	// read csv values using csv.Reader
 	csvReader := trading212.NewScanner(file)
 	for csvReader.Scan() {
@@ -114,9 +121,21 @@ func processFile(log logr.Logger, historyFile config.HistoryFile) error {
 		if err != nil {
 			return merry.Errorf("failed to process file: %w", err)
 		}
-		if record.StampDutyReserveTax != "" {
-			log.Info("record", "data", record)
+
+		if record.Ticker != "LUNR" {
+			// TODO test
+			continue
 		}
+
+		v, _ := record.GetActualPriceForQuantity(2.1)
+		log.Info("record", "total", record.Total, "quantity", record.NoOfShares, "fee", record.CurrencyConversionFee, "v", v)
+
+		v, _ = record.GetActualPriceForQuantity(4.55)
+		log.Info("record", "total", record.Total, "quantity", record.NoOfShares, "fee", record.CurrencyConversionFee, "v", v)
+
+		log.Info("buffer")
+		bookkeeper.AddOrExtend(record.Ticker, record)
+
 	}
 
 	return nil

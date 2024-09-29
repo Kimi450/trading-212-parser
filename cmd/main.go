@@ -126,16 +126,9 @@ func processFile(log logr.Logger, historyFile config.HistoryFile) error {
 			// TODO test
 			continue
 		}
-
-		v, _ := record.GetActualPriceForQuantity(2.1)
-		log.Info("record", "total", record.Total, "quantity", record.NoOfShares, "fee", record.CurrencyConversionFee, "v", v)
-
-		v, _ = record.GetActualPriceForQuantity(4.55)
-		log.Info("record", "total", record.Total, "quantity", record.NoOfShares, "fee", record.CurrencyConversionFee, "v", v)
-
 		log.Info("buffer")
 		bookkeeper.AddOrExtend(record.Ticker, record)
-
+		bookkeeper.Print(log)
 	}
 
 	return nil
@@ -155,4 +148,8 @@ func main() {
 	}
 
 	scriptArgs.run()
+}
+
+func dump(data interface{}) {
+
 }

@@ -10,8 +10,9 @@ type BookKeeperStruct struct {
 }
 
 type BookKeeper interface {
-	AddOrExtend(name string, purchaseHistory Record) error
+	AddOrExtend(log logr.Logger, name string, purchaseHistory Record) error
 	Print(log logr.Logger)
+	GetProfitForYear(year int) float64
 }
 
 func (b *BookKeeperStruct) Get(key string) PurchaseHistory {
@@ -22,14 +23,14 @@ func NewBookkeeper() BookKeeper {
 	return &BookKeeperStruct{book: make(map[string]PurchaseHistory)}
 }
 
-func (b *BookKeeperStruct) AddOrExtend(name string, record Record) error {
+func (b *BookKeeperStruct) AddOrExtend(log logr.Logger, name string, record Record) error {
 	_, ok := b.book[name]
 	if !ok {
 		b.book[name] = NewPurchaseHistory(NewRecordQueue())
 	}
 	purchaseHistory := b.book[name]
 
-	err := purchaseHistory.Process(&record)
+	err := purchaseHistory.Process(log, &record)
 	if err != nil {
 		return merry.Errorf("failed to update purchase history: %w", err)
 	}
@@ -41,13 +42,24 @@ func (b *BookKeeperStruct) Print(log logr.Logger) {
 	for k, v := range b.book {
 		for _, v2 := range v.GetRecordQueue().GetQueue() {
 			log.Info("test", "k", k,
-				"Total", v2.Total,
 				"NoOfShares", v2.NoOfShares,
-				"CurrencyConversionFee", v2.CurrencyConversionFee,
-				"ExchangeRate", v2.ExchangeRate,
+				"Price", v2.PriceShare,
+				"Total", v2.Total,
+				// "CurrencyConversionFee", v2.CurrencyConversionFee,
+				// "ExchangeRate", v2.ExchangeRate,
+				"profit", v.GetProfitForYear(2024),
 			)
 
 		}
 	}
 
+}
+
+func (b *BookKeeperStruct) GetProfitForYear(year int) float64 {
+	p := float64(0)
+	for _, ph := range b.book {
+		// get profit for each purchase history item for the year and sum it up
+		p += ph.GetProfitForYear(year)
+	}
+	return p
 }

@@ -107,10 +107,10 @@ func processFile(log logr.Logger, historyFile config.HistoryFile) error {
 	}
 	defer file.Close()
 
-	if historyFile.Year != "2024" {
-		// TODO test
-		return nil
-	}
+	// if historyFile.Year != 2024 {
+	// 	// TODO test
+	// 	return nil
+	// }
 
 	bookkeeper := trading212.NewBookkeeper()
 
@@ -122,14 +122,21 @@ func processFile(log logr.Logger, historyFile config.HistoryFile) error {
 			return merry.Errorf("failed to process file: %w", err)
 		}
 
-		if record.Ticker != "LUNR" {
-			// TODO test
-			continue
+		// if record.Ticker != "LUNR" {
+		// 	// TODO test
+		// 	continue
+		// }
+		err = bookkeeper.AddOrExtend(log, record.Ticker, record)
+		if err != nil {
+			return err
 		}
-		log.Info("buffer")
-		bookkeeper.AddOrExtend(record.Ticker, record)
-		bookkeeper.Print(log)
+		// bookkeeper.Print(log)
 	}
+
+	log.Info("profits",
+		"year", historyFile.Year,
+		"value", bookkeeper.GetProfitForYear(historyFile.Year),
+	)
 
 	return nil
 }
@@ -148,8 +155,4 @@ func main() {
 	}
 
 	scriptArgs.run()
-}
-
-func dump(data interface{}) {
-
 }

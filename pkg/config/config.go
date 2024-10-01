@@ -8,7 +8,7 @@ import (
 )
 
 type HistoryFile struct {
-	Year string `json:"Year"`
+	Year int `json:"Year"`
 
 	Path string `json:"Path"`
 }

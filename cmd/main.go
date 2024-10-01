@@ -87,11 +87,12 @@ func (scriptArgs *ScriptArgs) run() {
 	}
 
 	log.Info("script args passed", "scriptArgs", scriptArgs)
+	bookkeeper := trading212.NewBookkeeper()
 
 	for _, historyFile := range configData.HistoryFiles {
 		log.Info("processing file", "year", historyFile.Year, "path", historyFile.Path)
 
-		err := processFile(log, historyFile)
+		err := processFile(log, bookkeeper, historyFile)
 		if err != nil {
 			log.Error(err, "failed to process file",
 				"year", historyFile.Year, "path", historyFile.Path)
@@ -100,7 +101,7 @@ func (scriptArgs *ScriptArgs) run() {
 	}
 }
 
-func processFile(log logr.Logger, historyFile config.HistoryFile) error {
+func processFile(log logr.Logger, bookkeeper trading212.BookKeeper, historyFile config.HistoryFile) error {
 	file, err := os.Open(historyFile.Path)
 	if err != nil {
 		return merry.Errorf("failed to open file: %w", err)
@@ -111,8 +112,6 @@ func processFile(log logr.Logger, historyFile config.HistoryFile) error {
 	// 	// TODO test
 	// 	return nil
 	// }
-
-	bookkeeper := trading212.NewBookkeeper()
 
 	// read csv values using csv.Reader
 	csvReader := trading212.NewScanner(file)

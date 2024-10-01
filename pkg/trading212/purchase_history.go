@@ -35,10 +35,10 @@ func (q *PurchaseHistoryStruct) GetProfitForYear(year int) float64 {
 
 func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) error {
 	if strings.Contains(newRecord.Action, "buy") {
-		log.Info("buy")
+		// log.Info("buy")
 		q.recordQueue.Enqueue(newRecord)
 	} else if strings.Contains(newRecord.Action, "sell") {
-		log.Info("sell")
+		// log.Info("sell")
 		year, err := newRecord.GetYear()
 		if err != nil {
 			return merry.Errorf("failed to get year for record: %w", err)

@@ -78,15 +78,15 @@ func (r *Record) GetActualPriceForQuantity(quantity float64, buy bool) (float64,
 	r.NoOfShares -= quantity
 	r.Total -= total
 
-	r.Total, err = RoundFloatFast(r.Total, 2)
+	r.Total, err = RoundFloatFast(r.Total, 4)
 	if err != nil {
 		return 0, merry.Errorf("failed to adjust float precision: %w", err)
 	}
-	r.NoOfShares, err = RoundFloatFast(r.NoOfShares, 2)
+	r.NoOfShares, err = RoundFloatFast(r.NoOfShares, 4)
 	if err != nil {
 		return 0, merry.Errorf("failed to adjust float precision: %w", err)
 	}
-	r.CurrencyConversionFee, err = RoundFloatFast(r.CurrencyConversionFee, 2)
+	r.CurrencyConversionFee, err = RoundFloatFast(r.CurrencyConversionFee, 4)
 	if err != nil {
 		return 0, merry.Errorf("failed to adjust float precision: %w", err)
 	}

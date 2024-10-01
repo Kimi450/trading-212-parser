@@ -60,7 +60,7 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 
 	for sellRecord.NoOfShares != 0 {
 		if q.recordQueue.Size() <= 0 {
-			return 0, merry.Errorf("not enough shares available to sell???")
+			return 0, merry.Errorf("not enough shares available to sell: %s", sellRecord.Ticker)
 		}
 		currRecord := q.recordQueue.Peak()
 

@@ -3,6 +3,7 @@ package trading212
 import (
 	"github.com/ansel1/merry/v2"
 	"github.com/go-logr/logr"
+	"github.com/shopspring/decimal"
 )
 
 type BookKeeperStruct struct {
@@ -12,7 +13,7 @@ type BookKeeperStruct struct {
 type BookKeeper interface {
 	AddOrExtend(log logr.Logger, name string, purchaseHistory Record) error
 	Print(log logr.Logger)
-	GetProfitForYear(year int) float64
+	GetProfitForYear(year int) decimal.Decimal
 }
 
 func (b *BookKeeperStruct) Get(key string) PurchaseHistory {
@@ -55,11 +56,11 @@ func (b *BookKeeperStruct) Print(log logr.Logger) {
 
 }
 
-func (b *BookKeeperStruct) GetProfitForYear(year int) float64 {
-	p := float64(0)
+func (b *BookKeeperStruct) GetProfitForYear(year int) decimal.Decimal {
+	profits := decimal.NewFromInt(0)
 	for _, ph := range b.book {
 		// get profit for each purchase history item for the year and sum it up
-		p += ph.GetProfitForYear(year)
+		profits = profits.Add(ph.GetProfitForYear(year))
 	}
-	return p
+	return profits
 }

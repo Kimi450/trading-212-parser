@@ -1,11 +1,10 @@
 package trading212
 
 import (
-	"fmt"
-	"math"
 	"strconv"
 
 	"github.com/ansel1/merry/v2"
+	"github.com/shopspring/decimal"
 )
 
 type RecordDTO struct {
@@ -33,81 +32,52 @@ type RecordDTO struct {
 }
 
 type Record struct {
-	Action                        string  `json:"Action"`
-	Time                          string  `json:"Time"`
-	Isin                          string  `json:"ISIN"`
-	Ticker                        string  `json:"Ticker"`
-	Name                          string  `json:"Name"`
-	NoOfShares                    float64 `json:"No. of shares"`
-	PriceShare                    float64 `json:"Price / share"`
-	CurrencyPriceShare            string  `json:"Currency (Price / share)"`
-	ExchangeRate                  float64 `json:"Exchange rate"`
-	Result                        float64 `json:"Result"`
-	CurrencyResult                string  `json:"Currency (Result)"`
-	Total                         float64 `json:"Total"`
-	CurrencyTotal                 string  `json:"Currency (Total)"`
-	WithholdingTax                float64 `json:"Withholding tax"`
-	CurrencyWithholdingTax        string  `json:"Currency (Withholding tax)"`
-	StampDutyReserveTax           float64 `json:"Stamp duty reserve tax"`
-	CurrencyStampDutyReserveTax   string  `json:"Currency (Stamp duty reserve tax)"`
-	Notes                         string  `json:"Notes"`
-	ID                            string  `json:"ID"`
-	CurrencyConversionFee         float64 `json:"Currency conversion fee"`
-	CurrencyCurrencyConversionFee string  `json:"Currency (Currency conversion fee)"`
+	Action                        string          `json:"Action"`
+	Time                          string          `json:"Time"`
+	Isin                          string          `json:"ISIN"`
+	Ticker                        string          `json:"Ticker"`
+	Name                          string          `json:"Name"`
+	NoOfShares                    decimal.Decimal `json:"No. of shares"`
+	PriceShare                    decimal.Decimal `json:"Price / share"`
+	CurrencyPriceShare            string          `json:"Currency (Price / share)"`
+	ExchangeRate                  decimal.Decimal `json:"Exchange rate"`
+	Result                        decimal.Decimal `json:"Result"`
+	CurrencyResult                string          `json:"Currency (Result)"`
+	Total                         decimal.Decimal `json:"Total"`
+	CurrencyTotal                 string          `json:"Currency (Total)"`
+	WithholdingTax                decimal.Decimal `json:"Withholding tax"`
+	CurrencyWithholdingTax        string          `json:"Currency (Withholding tax)"`
+	StampDutyReserveTax           decimal.Decimal `json:"Stamp duty reserve tax"`
+	CurrencyStampDutyReserveTax   string          `json:"Currency (Stamp duty reserve tax)"`
+	Notes                         string          `json:"Notes"`
+	ID                            string          `json:"ID"`
+	CurrencyConversionFee         decimal.Decimal `json:"Currency conversion fee"`
+	CurrencyCurrencyConversionFee string          `json:"Currency (Currency conversion fee)"`
 }
 
 // (floatQuantity * floatPriceShare / floatExchangeRate) - floatCurrencyConversionFee
-func (r *Record) GetActualPriceForQuantity(quantity float64, buy bool) (float64, error) {
-	var err error
-	if r.NoOfShares < quantity {
-		return 0, merry.Errorf("quantity value is more than available shares: Requested: %f Available: %f",
-			quantity, r.NoOfShares)
+func (r *Record) GetActualPriceForQuantity(quantity decimal.Decimal, buy bool) (decimal.Decimal, error) {
+	if r.NoOfShares.LessThan(quantity) {
+		return decimal.NewFromInt(0),
+			merry.Errorf("quantity value is more than available shares: Requested: %f Available: %f",
+				quantity, r.NoOfShares)
 	}
-	proportionalConversionFee := r.CurrencyConversionFee * quantity / r.NoOfShares
-	total := (quantity * r.PriceShare / r.ExchangeRate)
+	proportionalConversionFee := r.CurrencyConversionFee.Mul(quantity).Div(r.NoOfShares)
+	total := quantity.Mul(r.PriceShare).Div(r.ExchangeRate)
 	if buy {
 		// when selling, this fee is added to get the Total value (idk why)
-		total += proportionalConversionFee
+		total = total.Add(proportionalConversionFee)
 	} else {
 		// when selling, this fee is subtracted to get the Total value (idk why)
-		total -= proportionalConversionFee
+		total = total.Sub(proportionalConversionFee)
 	}
 
 	// adjust record data
-	r.CurrencyConversionFee -= proportionalConversionFee
-	r.NoOfShares -= quantity
-	r.Total -= total
-
-	r.Total, err = RoundFloatFast(r.Total, 4)
-	if err != nil {
-		return 0, merry.Errorf("failed to adjust float precision: %w", err)
-	}
-	r.NoOfShares, err = RoundFloatFast(r.NoOfShares, 4)
-	if err != nil {
-		return 0, merry.Errorf("failed to adjust float precision: %w", err)
-	}
-	r.CurrencyConversionFee, err = RoundFloatFast(r.CurrencyConversionFee, 4)
-	if err != nil {
-		return 0, merry.Errorf("failed to adjust float precision: %w", err)
-	}
+	r.CurrencyConversionFee = r.CurrencyConversionFee.Sub(proportionalConversionFee)
+	r.NoOfShares = r.NoOfShares.Sub(quantity)
+	r.Total = r.Total.Sub(total)
 
 	return total, nil
-}
-
-func RoundFloatFast(f float64, prec int) (float64, error) {
-	// https: //stackoverflow.com/questions/18390266/how-can-we-truncate-float64-type-to-a-particular-precision
-	mul := math.Pow10(prec)
-	if mul == 0 {
-		return 0, nil
-	}
-
-	product := f * mul
-	var roundingErr error
-	if product > float64(math.MaxInt64) {
-		roundingErr = fmt.Errorf("unsafe round: float64=%+v, places=%d", f, prec)
-	}
-
-	return math.Round(product) / mul, roundingErr
 }
 
 func (r *Record) GetYear() (int, error) {

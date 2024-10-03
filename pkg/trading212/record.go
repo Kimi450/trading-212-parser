@@ -1,6 +1,7 @@
 package trading212
 
 import (
+	"slices"
 	"strconv"
 
 	"github.com/ansel1/merry/v2"
@@ -55,6 +56,13 @@ type Record struct {
 	CurrencyCurrencyConversionFee string          `json:"Currency (Currency conversion fee)"`
 }
 
+type RecordType string
+
+const (
+	ETF   RecordType = "ETF"
+	Stock RecordType = "Stock"
+)
+
 // (floatQuantity * floatPriceShare / floatExchangeRate) - floatCurrencyConversionFee
 func (r *Record) GetActualPriceForQuantity(quantity decimal.Decimal, buy bool) (decimal.Decimal, error) {
 	if r.NoOfShares.LessThan(quantity) {
@@ -82,4 +90,15 @@ func (r *Record) GetActualPriceForQuantity(quantity decimal.Decimal, buy bool) (
 
 func (r *Record) GetYear() (int, error) {
 	return strconv.Atoi(r.Time[0:4])
+}
+
+// I have a support ticket with Trading 212 to add this data
+// to the transaction history export
+func (r *Record) GetType() RecordType {
+	etf := []string{"VUSA", "VUAA"}
+
+	if slices.Contains(etf, r.Ticker) {
+		return ETF
+	}
+	return Stock
 }

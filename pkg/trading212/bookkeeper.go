@@ -6,6 +6,11 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type Profits struct {
+	Stock decimal.Decimal
+	ETF   decimal.Decimal
+}
+
 type BookKeeperStruct struct {
 	book map[string]PurchaseHistory
 }
@@ -13,7 +18,7 @@ type BookKeeperStruct struct {
 type BookKeeper interface {
 	AddOrExtend(log logr.Logger, name string, purchaseHistory Record) error
 	Print(log logr.Logger)
-	GetProfitForYear(year int) decimal.Decimal
+	GetProfitForYear(year int) Profits
 }
 
 func (b *BookKeeperStruct) Get(key string) PurchaseHistory {
@@ -56,11 +61,16 @@ func (b *BookKeeperStruct) Print(log logr.Logger) {
 
 }
 
-func (b *BookKeeperStruct) GetProfitForYear(year int) decimal.Decimal {
-	profits := decimal.NewFromInt(0)
+func (b *BookKeeperStruct) GetProfitForYear(year int) Profits {
+	profits := Profits{
+		ETF:   decimal.NewFromInt(0),
+		Stock: decimal.NewFromInt(0),
+	}
 	for _, ph := range b.book {
 		// get profit for each purchase history item for the year and sum it up
-		profits = profits.Add(ph.GetProfitForYear(year))
+		yearlyProfit := ph.GetProfitForYear(year)
+		profits.ETF = profits.ETF.Add(yearlyProfit.ETF)
+		profits.Stock = profits.Stock.Add(yearlyProfit.Stock)
 	}
 	return profits
 }

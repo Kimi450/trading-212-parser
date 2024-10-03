@@ -11,18 +11,18 @@ import (
 type PurchaseHistory interface {
 	GetRecordQueue() RecordQueue
 	Process(log logr.Logger, newRecord *Record) error
-	GetProfitForYear(year int) decimal.Decimal
+	GetProfitForYear(year int) Profits
 }
 
 type PurchaseHistoryStruct struct {
 	recordQueue RecordQueue
-	profits     map[int]decimal.Decimal
+	profits     map[int]Profits
 }
 
 func NewPurchaseHistory(recordQueue RecordQueue) PurchaseHistory {
 	return &PurchaseHistoryStruct{
 		recordQueue: recordQueue,
-		profits:     make(map[int]decimal.Decimal),
+		profits:     make(map[int]Profits),
 	}
 }
 
@@ -30,7 +30,7 @@ func (q *PurchaseHistoryStruct) GetRecordQueue() RecordQueue {
 	return q.recordQueue
 }
 
-func (q *PurchaseHistoryStruct) GetProfitForYear(year int) decimal.Decimal {
+func (q *PurchaseHistoryStruct) GetProfitForYear(year int) Profits {
 	return q.profits[year]
 }
 
@@ -49,7 +49,20 @@ func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) erro
 			return merry.Errorf("failed to process new record: %w", err)
 		}
 
-		q.profits[year] = q.profits[year].Add(profit)
+		existingYearProfit := q.profits[year]
+
+		newRecordType := newRecord.GetType()
+		if newRecordType == Stock {
+			existingYearProfit.Stock = existingYearProfit.Stock.Add(profit)
+			q.profits[year] = existingYearProfit
+		} else if newRecordType == ETF {
+			existingYearProfit.ETF = existingYearProfit.ETF.Add(profit)
+			q.profits[year] = existingYearProfit
+		} else {
+			return merry.Errorf("invalid record type: %s", newRecordType)
+
+		}
+
 	}
 
 	return nil

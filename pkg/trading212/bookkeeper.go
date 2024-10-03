@@ -7,8 +7,9 @@ import (
 )
 
 type Profits struct {
-	Stock decimal.Decimal
-	ETF   decimal.Decimal
+	Overall decimal.Decimal
+	Stock   decimal.Decimal
+	ETF     decimal.Decimal
 }
 
 type BookKeeperStruct struct {
@@ -72,5 +73,6 @@ func (b *BookKeeperStruct) GetProfitForYear(year int) Profits {
 		profits.ETF = profits.ETF.Add(yearlyProfit.ETF)
 		profits.Stock = profits.Stock.Add(yearlyProfit.Stock)
 	}
+	profits.Overall = profits.Stock.Add(profits.ETF)
 	return profits
 }

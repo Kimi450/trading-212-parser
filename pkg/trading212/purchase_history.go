@@ -5,23 +5,24 @@ import (
 
 	"github.com/ansel1/merry/v2"
 	"github.com/go-logr/logr"
+	"github.com/shopspring/decimal"
 )
 
 type PurchaseHistory interface {
 	GetRecordQueue() RecordQueue
 	Process(log logr.Logger, newRecord *Record) error
-	GetProfitForYear(year int) float64
+	GetProfitForYear(year int) decimal.Decimal
 }
 
 type PurchaseHistoryStruct struct {
 	recordQueue RecordQueue
-	profits     map[int]float64
+	profits     map[int]decimal.Decimal
 }
 
 func NewPurchaseHistory(recordQueue RecordQueue) PurchaseHistory {
 	return &PurchaseHistoryStruct{
 		recordQueue: recordQueue,
-		profits:     make(map[int]float64),
+		profits:     make(map[int]decimal.Decimal),
 	}
 }
 
@@ -29,7 +30,7 @@ func (q *PurchaseHistoryStruct) GetRecordQueue() RecordQueue {
 	return q.recordQueue
 }
 
-func (q *PurchaseHistoryStruct) GetProfitForYear(year int) float64 {
+func (q *PurchaseHistoryStruct) GetProfitForYear(year int) decimal.Decimal {
 	return q.profits[year]
 }
 
@@ -48,30 +49,30 @@ func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) erro
 			return merry.Errorf("failed to process new record: %w", err)
 		}
 
-		q.profits[year] += profit
+		q.profits[year] = q.profits[year].Add(profit)
 	}
 
 	return nil
 }
 
 func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
-	log logr.Logger, sellRecord Record) (float64, error) {
-	var profit float64
+	log logr.Logger, sellRecord Record) (decimal.Decimal, error) {
+	var profit decimal.Decimal
 
-	for sellRecord.NoOfShares != 0 {
+	for !sellRecord.NoOfShares.Equal(decimal.NewFromInt(0)) {
 		if q.recordQueue.Size() <= 0 {
-			return 0, merry.Errorf("not enough shares available to sell: %s", sellRecord.Ticker)
+			return decimal.NewFromInt(0), merry.Errorf("not enough shares available to sell: %s", sellRecord.Ticker)
 		}
 		currRecord := q.recordQueue.Peak()
 
-		if sellRecord.NoOfShares <= currRecord.NoOfShares {
+		if sellRecord.NoOfShares.LessThanOrEqual(currRecord.NoOfShares) {
 			// more shares available than to sell
 			price, err := currRecord.GetActualPriceForQuantity(sellRecord.NoOfShares, true)
 			if err != nil {
 				return profit, merry.Errorf("failed to get price for sell action: %w", err)
 			}
-			profit += (sellRecord.Total - price)
-			sellRecord.NoOfShares = 0
+			profit = profit.Add(sellRecord.Total).Sub(price)
+			sellRecord.NoOfShares = decimal.NewFromInt(0)
 
 		} else {
 			// save the value since the record is mutated
@@ -89,14 +90,13 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 				return profit, merry.Errorf("failed to get price for sell action: %w", err)
 			}
 
-			profit += (sellProfit - buyCost)
+			profit = profit.Add(sellProfit.Sub(buyCost))
 
 		}
-		if currRecord.NoOfShares <= 0 {
+		if currRecord.NoOfShares.LessThanOrEqual(decimal.NewFromInt(0)) {
 			// get rid of record if it has no shares in it
 			q.recordQueue.Dequeue()
 		}
 	}
-
 	return profit, nil
 }

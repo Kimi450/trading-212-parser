@@ -7,8 +7,9 @@ import (
 	"encoding/json"
 	"io"
 	"regexp"
-	"strconv"
 	"strings"
+
+	"github.com/shopspring/decimal"
 
 	"github.com/ansel1/merry/v2"
 )
@@ -75,10 +76,10 @@ func (o *Scanner) ToRecord() (Record, error) {
 	record.ID = recordDto.ID
 	record.CurrencyCurrencyConversionFee = recordDto.CurrencyCurrencyConversionFee
 
-	parseFloatIgnoreEmptyString := func(value string) (float64, error) {
-		var out float64
+	parseFloatIgnoreEmptyString := func(value string) (decimal.Decimal, error) {
+		var out decimal.Decimal
 		if regexp.MustCompile(`^\d+(\.\d+)?$`).MatchString(value) {
-			out, err = strconv.ParseFloat(value, 64)
+			out, err = decimal.NewFromString(value)
 			if err != nil {
 				return out, merry.Errorf("failed to parse float: %w", err)
 			}

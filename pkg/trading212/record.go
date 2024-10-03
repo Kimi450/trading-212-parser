@@ -73,10 +73,14 @@ func (r *Record) GetActualPriceForQuantity(quantity decimal.Decimal, buy bool) (
 	proportionalConversionFee := r.CurrencyConversionFee.Mul(quantity).Div(r.NoOfShares)
 	total := quantity.Mul(r.PriceShare).Div(r.ExchangeRate)
 	if buy {
-		// when selling, this fee is added to get the Total value (idk why)
+		// when selling, this fee is added to get the Total value
+		// This is because the total you get is after the fee is added to
+		// it representing the total cost to you
 		total = total.Add(proportionalConversionFee)
 	} else {
-		// when selling, this fee is subtracted to get the Total value (idk why)
+		// when selling, this fee is subtracted to get the Total value
+		// This is because the total you get is after the fee is taken from it
+		// to show how much you got from it (net, i.e, after the fee)
 		total = total.Sub(proportionalConversionFee)
 	}
 

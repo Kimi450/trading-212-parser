@@ -1,11 +1,13 @@
 package main
 
 import (
+	"cmp"
 	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"path"
+	"slices"
 
 	"github.com/ansel1/merry/v2"
 	"github.com/go-logr/logr"
@@ -88,6 +90,11 @@ func (scriptArgs *ScriptArgs) run() {
 
 	log.Info("script args passed", "scriptArgs", scriptArgs)
 	bookkeeper := trading212.NewBookkeeper()
+
+	// sort files by year to ensure correct processing
+	slices.SortFunc(configData.HistoryFiles, func(first, second config.HistoryFile) int {
+		return cmp.Compare(first.Year, second.Year)
+	})
 
 	for _, historyFile := range configData.HistoryFiles {
 		log.Info("processing file", "year", historyFile.Year, "path", historyFile.Path)

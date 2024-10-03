@@ -108,11 +108,6 @@ func processFile(log logr.Logger, bookkeeper trading212.BookKeeper, historyFile 
 	}
 	defer file.Close()
 
-	// if historyFile.Year != 2024 {
-	// 	// TODO test
-	// 	return nil
-	// }
-
 	// read csv values using csv.Reader
 	csvReader := trading212.NewScanner(file)
 	for csvReader.Scan() {
@@ -121,10 +116,6 @@ func processFile(log logr.Logger, bookkeeper trading212.BookKeeper, historyFile 
 			return merry.Errorf("failed to process file: %w", err)
 		}
 
-		// if record.Ticker != "LUNR" {
-		// 	// TODO test
-		// 	continue
-		// }
 		err = bookkeeper.AddOrExtend(log, record.Ticker, record)
 		if err != nil {
 			return err

@@ -123,7 +123,7 @@ func processFile(log logr.Logger, bookkeeper trading212.BookKeeper, historyFile 
 			return merry.Errorf("failed to process file: %w", err)
 		}
 
-		err = bookkeeper.AddOrExtend(log, record.Ticker, record)
+		err = bookkeeper.FindOrCreateEntryAndProcess(log, record.Ticker, record)
 		if err != nil {
 			return err
 		}

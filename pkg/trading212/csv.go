@@ -119,6 +119,10 @@ func (o *Scanner) ToRecord() (Record, error) {
 	if err != nil {
 		return record, merry.Errorf("failed to parse float for record DTO 'CurrencyConversionFee': %w", err)
 	}
+	err = record.AdjustForSplit()
+	if err != nil {
+		return record, merry.Errorf("failed to adjust for split: %w", err)
+	}
 
 	return record, nil
 }

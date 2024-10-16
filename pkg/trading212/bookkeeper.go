@@ -17,7 +17,7 @@ type BookKeeperStruct struct {
 }
 
 type BookKeeper interface {
-	AddOrExtend(log logr.Logger, name string, purchaseHistory Record) error
+	FindOrCreateEntryAndProcess(log logr.Logger, name string, purchaseHistory Record) error
 	Print(log logr.Logger)
 	GetProfitForYear(year int) Profits
 }
@@ -30,7 +30,7 @@ func NewBookkeeper() BookKeeper {
 	return &BookKeeperStruct{book: make(map[string]PurchaseHistory)}
 }
 
-func (b *BookKeeperStruct) AddOrExtend(log logr.Logger, name string, record Record) error {
+func (b *BookKeeperStruct) FindOrCreateEntryAndProcess(log logr.Logger, name string, record Record) error {
 	_, ok := b.book[name]
 	if !ok {
 		b.book[name] = NewPurchaseHistory(NewRecordQueue())

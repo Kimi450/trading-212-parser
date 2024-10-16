@@ -8,5 +8,6 @@ This parser should parse the buy/sell transactions from history files exported f
 
 * Populate the `./configs/config.json` file with a map of `Year` to `Path` of the history file exported from Trading 212
 * Run `go run cmd/main.go -config configs/config.json`
+* Run `go run cmd/main.go --help` for usage
 
 The output text will show you your expected tax liability for all the years.

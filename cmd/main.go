@@ -19,6 +19,7 @@ import (
 type ScriptArgs struct {
 	LogBundleBaseDir string
 	Config           string
+	Ticker           string
 }
 
 func (scriptArgs *ScriptArgs) parseArgs() error {
@@ -34,6 +35,9 @@ func (scriptArgs *ScriptArgs) parseArgs() error {
 		return merry.Errorf("failed to get working directory: %w", err)
 	}
 
+	ticker := flag.String("ticker", "",
+		"Process only the given ticker")
+
 	logBundleBaseDir := flag.String("log-bundle-base-dir", cwd,
 		"Base directory for the log bundle generated")
 
@@ -45,6 +49,7 @@ func (scriptArgs *ScriptArgs) parseArgs() error {
 
 	scriptArgs.LogBundleBaseDir = *logBundleBaseDir
 	scriptArgs.Config = *config
+	scriptArgs.Ticker = *ticker
 
 	return nil
 }
@@ -99,7 +104,7 @@ func (scriptArgs *ScriptArgs) run() {
 	for _, historyFile := range configData.HistoryFiles {
 		log.Info("processing file", "year", historyFile.Year, "path", historyFile.Path)
 
-		err := processFile(log, bookkeeper, historyFile)
+		err := processFile(log, bookkeeper, historyFile, scriptArgs.Ticker)
 		if err != nil {
 			log.Error(err, "failed to process file",
 				"year", historyFile.Year, "path", historyFile.Path)
@@ -108,7 +113,8 @@ func (scriptArgs *ScriptArgs) run() {
 	}
 }
 
-func processFile(log logr.Logger, bookkeeper trading212.BookKeeper, historyFile config.HistoryFile) error {
+func processFile(log logr.Logger, bookkeeper trading212.BookKeeper,
+	historyFile config.HistoryFile, ticker string) error {
 	file, err := os.Open(historyFile.Path)
 	if err != nil {
 		return merry.Errorf("failed to open file: %w", err)
@@ -123,11 +129,16 @@ func processFile(log logr.Logger, bookkeeper trading212.BookKeeper, historyFile 
 			return merry.Errorf("failed to process file: %w", err)
 		}
 
+		if ticker != "" && ticker != record.Ticker {
+			// if a ticker is passed, and if the record is not of the wanted ticker
+			// skip the record
+			continue
+		}
+
 		err = bookkeeper.FindOrCreateEntryAndProcess(log, record.Ticker, record)
 		if err != nil {
 			return err
 		}
-		// bookkeeper.Print(log)
 	}
 
 	log.Info("profits",

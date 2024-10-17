@@ -45,6 +45,7 @@ func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) erro
 		"date", newRecord.Time[:19],
 		"amount", fmt.Sprintf("%6s", newRecord.NoOfShares.StringFixed(2)),
 		"cost", fmt.Sprintf("%7s", newRecord.PriceShare.StringFixed(2)),
+		"splitadjusted", fmt.Sprintf("%-5t", newRecord.SplitAdjusted.Done),
 	)
 	if strings.Contains(newRecord.Action, "buy") {
 		q.recordQueue.Enqueue(newRecord)

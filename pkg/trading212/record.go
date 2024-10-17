@@ -120,6 +120,10 @@ func (r *Record) AdjustForSplit() error {
 		return err
 	}
 
+	if denominator == 1 { // no adjustment needed
+		return nil
+	}
+
 	r.NoOfShares = r.NoOfShares.Mul(decimal.NewFromInt(denominator))
 	r.PriceShare = r.PriceShare.Div(decimal.NewFromInt(denominator))
 	r.SplitAdjusted.Done = true

@@ -1,9 +1,12 @@
 package trading212
 
+import "reflect"
+
 type RecordQueue interface {
-	Enqueue(rec *Record)
-	Dequeue() *Record
-	Peak() *Record
+	Append(rec *Record)
+	Remove(index int) *Record
+	RemoveItem(record *Record) *Record
+	Peek(index int) *Record
 	IsEmpty() bool
 	Size() int
 	GetQueue() []*Record
@@ -19,18 +22,31 @@ func NewRecordQueue() RecordQueue {
 	}
 }
 
-func (q *RecordQueueStruct) Enqueue(rec *Record) {
+func (q *RecordQueueStruct) Append(rec *Record) {
 	q.data = append(q.data, rec)
 }
 
-func (q *RecordQueueStruct) Dequeue() *Record {
-	dequeued := q.data[0]
-	q.data = q.data[1:]
-	return dequeued
+func (q *RecordQueueStruct) Remove(index int) *Record {
+	removed := q.data[index]
+	q.data = append(q.data[:index], q.data[index+1:]...)
+	return removed
 }
 
-func (q *RecordQueueStruct) Peak() *Record {
-	return q.data[0]
+func (q *RecordQueueStruct) RemoveItem(record *Record) *Record {
+	newData := []*Record{}
+	for _, oldRecord := range q.data {
+		if reflect.DeepEqual(record, oldRecord) {
+			continue
+		}
+		newData = append(newData, oldRecord)
+	}
+
+	q.data = newData
+	return record
+}
+
+func (q *RecordQueueStruct) Peek(index int) *Record {
+	return q.data[index]
 }
 
 func (q *RecordQueueStruct) IsEmpty() bool {

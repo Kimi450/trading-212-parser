@@ -3,6 +3,7 @@ package trading212
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/ansel1/merry/v2"
 	"github.com/go-logr/logr"
@@ -42,18 +43,15 @@ func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) erro
 
 	log.Info(fmt.Sprintf("%-12s", newRecord.Action),
 		"ticker", fmt.Sprintf("%-5s", newRecord.Ticker),
-		"date", newRecord.Time[:19],
+		"date", newRecord.Time.String(),
 		"PriceShare", fmt.Sprintf("%7s", newRecord.PriceShare.StringFixed(2)),
 		"NoOfShares", fmt.Sprintf("%6s", newRecord.NoOfShares.StringFixed(2)),
 		"splitadjusted", fmt.Sprintf("%-5t", newRecord.SplitAdjusted.Done),
 	)
 	if strings.Contains(newRecord.Action, "buy") {
-		q.recordQueue.Enqueue(newRecord)
+		q.recordQueue.Append(newRecord)
 	} else if strings.Contains(newRecord.Action, "sell") {
-		year, err := newRecord.GetYear()
-		if err != nil {
-			return merry.Errorf("failed to get year for record: %w", err)
-		}
+		year := newRecord.GetYear()
 		profit, err := q.updateHistoryAndGetProfit(log, *newRecord)
 		if err != nil {
 			return merry.Errorf("failed to process new record: %w", err)
@@ -77,6 +75,13 @@ func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) erro
 	return nil
 }
 
+func TimeIsBetween(t, min, max time.Time) bool {
+	if min.After(max) {
+		min, max = max, min
+	}
+	return (t.Equal(min) || t.After(min)) && (t.Equal(max) || t.Before(max))
+}
+
 // FIFO default
 // If sold withing 4 weeks of purchase, LIFO will apply when needed
 // If bought within 4 weeks of sale, if a loss occurs on the initial disposal, then this loss can only be offset against a gain on the sale of shares of the same class which were purchased within 4 weeks of that sale.
@@ -88,7 +93,14 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 		if q.recordQueue.Size() <= 0 {
 			return decimal.NewFromInt(0), merry.Errorf("not enough shares available to sell: %s", sellRecord.Ticker)
 		}
-		currRecord := q.recordQueue.Peak()
+
+		currRecord := q.recordQueue.Peek(0)
+		lastRecord := q.recordQueue.Peek(q.recordQueue.Size() - 1)
+		if TimeIsBetween(lastRecord.Time, sellRecord.Time.AddDate(0, 0, -7*4), sellRecord.Time) {
+			// Fits the bill for LIFO
+			log.Info("LIFO processing...")
+			currRecord = lastRecord
+		}
 
 		if sellRecord.NoOfShares.LessThanOrEqual(currRecord.NoOfShares) {
 			// more shares available than to sell
@@ -120,7 +132,7 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 		}
 		if currRecord.NoOfShares.LessThanOrEqual(decimal.NewFromInt(0)) {
 			// get rid of record if it has no shares in it
-			q.recordQueue.Dequeue()
+			q.recordQueue.RemoveItem(currRecord)
 		}
 	}
 	return profit, nil

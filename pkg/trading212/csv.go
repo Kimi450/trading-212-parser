@@ -8,6 +8,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/shopspring/decimal"
 
@@ -63,7 +64,12 @@ func (o *Scanner) ToRecord() (Record, error) {
 
 	// cannot find a cleaner and simpler way to do this
 	record.Action = recordDto.Action
-	record.Time = recordDto.Time
+
+	parsedTime, err := time.Parse("2006-01-02 15:04:05", recordDto.Time)
+	if err != nil {
+		return record, merry.Errorf("failed to parse time: %w", err)
+	}
+	record.Time = parsedTime
 	record.Isin = recordDto.Isin
 	record.Ticker = recordDto.Ticker
 	record.Name = recordDto.Name

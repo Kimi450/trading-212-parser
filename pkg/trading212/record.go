@@ -2,7 +2,6 @@ package trading212
 
 import (
 	"slices"
-	"strconv"
 	"time"
 
 	"github.com/ansel1/merry/v2"
@@ -41,7 +40,7 @@ type Record struct {
 	SplitAdjusted
 
 	Action                        string          `json:"Action"`
-	Time                          string          `json:"Time"`
+	Time                          time.Time       `json:"Time"`
 	Isin                          string          `json:"ISIN"`
 	Ticker                        string          `json:"Ticker"`
 	Name                          string          `json:"Name"`
@@ -99,8 +98,8 @@ func (r *Record) GetActualPriceForQuantity(quantity decimal.Decimal, buy bool) (
 	return total, nil
 }
 
-func (r *Record) GetYear() (int, error) {
-	return strconv.Atoi(r.Time[0:4])
+func (r *Record) GetYear() int {
+	return r.Time.Year()
 }
 
 // I have a support ticket with Trading 212 to add this data
@@ -115,10 +114,7 @@ func (r *Record) GetType() RecordType {
 }
 
 func (r *Record) AdjustForSplit() error {
-	_, denominator, err := SplitAdjustmentRequired(*r)
-	if err != nil {
-		return err
-	}
+	_, denominator := SplitAdjustmentRequired(*r)
 
 	if denominator == 1 { // no adjustment needed
 		return nil
@@ -131,141 +127,136 @@ func (r *Record) AdjustForSplit() error {
 	return nil
 }
 
-func SplitAdjustmentRequired(record Record) (numerator, dedenmoniator int64, err error) {
-	parsedTime, err := time.Parse("2006-01-02 15:04:05", record.Time[:19])
-	if err != nil {
-		return 0, 0, err
-	}
-
+func SplitAdjustmentRequired(record Record) (numerator, dedenmoniator int64) {
 	// https://companiesmarketcap.com/eur
 
 	if record.Ticker == "AAPL" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "AMD" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "AMZN" &&
-		parsedTime.Before(time.Date(2022, 6, 6, 0, 0, 0, 0, time.UTC)) &&
-		parsedTime.After(time.Date(1999, 9, 2, 0, 0, 0, 0, time.UTC)) {
-		return 1, 20, nil
+		record.Time.Before(time.Date(2022, 6, 6, 0, 0, 0, 0, time.UTC)) &&
+		record.Time.After(time.Date(1999, 9, 2, 0, 0, 0, 0, time.UTC)) {
+		return 1, 20
 	}
 	if record.Ticker == "BA" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "BABA" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "BARC" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "BRT3" {
 		// ETF
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "CRUDP" {
 		// idk
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "CRWD" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "DIS" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "GME" &&
-		parsedTime.Before(time.Date(2022, 7, 22, 0, 0, 0, 0, time.UTC)) &&
-		parsedTime.After(time.Date(2007, 3, 19, 0, 0, 0, 0, time.UTC)) {
-		return 1, 4, nil
+		record.Time.Before(time.Date(2022, 7, 22, 0, 0, 0, 0, time.UTC)) &&
+		record.Time.After(time.Date(2007, 3, 19, 0, 0, 0, 0, time.UTC)) {
+		return 1, 4
 	}
 	if record.Ticker == "GOOGL" &&
-		parsedTime.Before(time.Date(2022, 7, 18, 0, 0, 0, 0, time.UTC)) &&
-		parsedTime.After(time.Date(2015, 4, 27, 0, 0, 0, 0, time.UTC)) {
-		return 1, 20, nil
+		record.Time.Before(time.Date(2022, 7, 18, 0, 0, 0, 0, time.UTC)) &&
+		record.Time.After(time.Date(2015, 4, 27, 0, 0, 0, 0, time.UTC)) {
+		return 1, 20
 	}
 	if record.Ticker == "INTC" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "LUNR" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "META" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "MRNA" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "MSFT" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "NFLX" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "NKE" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "NVDA" &&
-		parsedTime.Before(time.Date(2024, 6, 10, 0, 0, 0, 0, time.UTC)) &&
-		parsedTime.After(time.Date(2021, 7, 20, 0, 0, 0, 0, time.UTC)) {
-		return 1, 10, nil
+		record.Time.Before(time.Date(2024, 6, 10, 0, 0, 0, 0, time.UTC)) &&
+		record.Time.After(time.Date(2021, 7, 20, 0, 0, 0, 0, time.UTC)) {
+		return 1, 10
 	}
 	if record.Ticker == "RACE" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "RIGD" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "RR" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "RS" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "SPCE" &&
-		parsedTime.Before(time.Date(2024, 6, 17, 0, 0, 0, 0, time.UTC)) {
+		record.Time.Before(time.Date(2024, 6, 17, 0, 0, 0, 0, time.UTC)) {
 		// all good for post 2022
-		return 1, 20, nil
+		return 1, 20
 	}
 	if record.Ticker == "SPOT" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "TSLA" &&
-		parsedTime.Before(time.Date(2022, 8, 25, 0, 0, 0, 0, time.UTC)) &&
-		parsedTime.After(time.Date(2020, 8, 31, 0, 0, 0, 0, time.UTC)) {
-		return 1, 3, nil
+		record.Time.Before(time.Date(2022, 8, 25, 0, 0, 0, 0, time.UTC)) &&
+		record.Time.After(time.Date(2020, 8, 31, 0, 0, 0, 0, time.UTC)) {
+		return 1, 3
 	}
 	if record.Ticker == "TWTR" {
 		// all good for post 2022
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "VUAA" {
 		// ETF
-		return 1, 1, nil
+		return 1, 1
 	}
 	if record.Ticker == "VUSA" {
 		// ETF
-		return 1, 1, nil
+		return 1, 1
 	}
 
 	// Unknown
-	return 1, 1, nil
+	return 1, 1
 }

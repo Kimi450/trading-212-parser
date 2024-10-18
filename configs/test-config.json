@@ -1,17 +1,8 @@
-
 {
     "historyFiles": [
         {
-            "Year": 2023,
-            "Path": "/mnt/d/20240929-trading-212-history-from_2023-01-01_to_2023-12-31_MTcyNzYwMzgxMzE2NQ.csv"
-        },
-        {
-            "Year": 2022,
-            "Path": "/mnt/d/20240929-trading-212-history-from_2022-03-06_to_2022-12-31_MTcyNzYwMzc3ODk2OA.csv"
-        },
-        {
             "Year": 2024,
-            "Path": "/mnt/d/20241016-trading-212-history-from_2024-01-01_to_2024-10-16_MTcyOTA2NjM3NTU3Nw.csv"
+            "Path": "./test/testdata-fifo-only.csv"
         }
     ]
 }

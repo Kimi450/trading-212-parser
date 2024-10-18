@@ -43,8 +43,8 @@ func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) erro
 	log.Info(fmt.Sprintf("%-12s", newRecord.Action),
 		"ticker", fmt.Sprintf("%-5s", newRecord.Ticker),
 		"date", newRecord.Time[:19],
-		"amount", fmt.Sprintf("%6s", newRecord.NoOfShares.StringFixed(2)),
-		"cost", fmt.Sprintf("%7s", newRecord.PriceShare.StringFixed(2)),
+		"PriceShare", fmt.Sprintf("%7s", newRecord.PriceShare.StringFixed(2)),
+		"NoOfShares", fmt.Sprintf("%6s", newRecord.NoOfShares.StringFixed(2)),
 		"splitadjusted", fmt.Sprintf("%-5t", newRecord.SplitAdjusted.Done),
 	)
 	if strings.Contains(newRecord.Action, "buy") {

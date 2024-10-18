@@ -1,0 +1,9 @@
+Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Stamp duty reserve tax,Currency (Stamp duty reserve tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)
+Market buy,2023-04-03 13:30:05.584,US46125A1007,INA,"Intuitive Machines",40.0000000000,6.40,USD,1.07871,,"EUR",237.68,"EUR",,,,,,EOF12455177585,0.36,"EUR"
+Market buy,2023-04-08 18:15:53.182,US46125A1007,INA,"Intuitive Machines",10.0000000000,4.95,USD,1.08576,,"EUR",45.66,"EUR",,,,,,EOF12752999367,0.07,"EUR"
+Market buy,2023-05-21 14:51:20.974,US46125A1007,INA,"Intuitive Machines",5.0000000000,5.03,USD,1.08592,,"EUR",23.19,"EUR",,,,,,EOF14801365999,0.03,"EUR"
+Market buy,2023-05-23 15:27:36.568,US46125A1007,INA,"Intuitive Machines",5.0000000000,4.94,USD,1.08238,,"EUR",22.85,"EUR",,,,,,EOF14901086108,0.03,"EUR"
+Limit buy,2023-05-31 19:51:08.073,US46125A1007,INA,"Intuitive Machines",5.0000000000,5.01,USD,1.08488,,"EUR",23.12,"EUR",,,,,,EOF15301991375,0.03,"EUR"
+Market buy,2023-06-20 14:12:51.382,US46125A1007,INA,"Intuitive Machines",5.0000000000,3.62,USD,1.07227,,"EUR",16.91,"EUR",,,,,,EOF16251976120,0.03,"EUR"
+Stop sell,2023-09-18 14:22:13.058,US46125A1007,INA,"Intuitive Machines",35.0000000000,8.52,USD,1.11198,83.74,"EUR",267.77,"EUR",,,,,,EOF20700713357,0.40,"EUR"
+Limit buy,2023-09-24 17:02:18.912,US46125A1007,INA,"Intuitive Machines",10.0000000000,7.65,USD,1.11581,,"EUR",68.66,"EUR",,,,,,EOF20951682298,0.10,"EUR"

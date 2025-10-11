@@ -60,13 +60,14 @@ func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) erro
 		existingYearProfit := q.profits[year]
 
 		newRecordType := newRecord.GetType()
-		if newRecordType == Stock {
+		switch newRecordType {
+		case Stock:
 			existingYearProfit.Stock = existingYearProfit.Stock.Add(profit)
 			q.profits[year] = existingYearProfit
-		} else if newRecordType == ETF {
+		case ETF:
 			existingYearProfit.ETF = existingYearProfit.ETF.Add(profit)
 			q.profits[year] = existingYearProfit
-		} else {
+		default:
 			return merry.Errorf("invalid record type: %s", newRecordType)
 
 		}
@@ -84,7 +85,9 @@ func TimeIsBetween(t, min, max time.Time) bool {
 
 // FIFO default
 // If sold withing 4 weeks of purchase, LIFO will apply when needed
-// If bought within 4 weeks of sale, if a loss occurs on the initial disposal, then this loss can only be offset against a gain on the sale of shares of the same class which were purchased within 4 weeks of that sale.
+// If bought within 4 weeks of sale, if a loss occurs on the initial disposal,
+// then this loss can only be offset against a gain on the sale of shares of
+// the same class which were purchased within 4 weeks of that sale.
 func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 	log logr.Logger, sellRecord Record) (decimal.Decimal, error) {
 	var profit decimal.Decimal

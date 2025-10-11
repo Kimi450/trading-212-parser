@@ -1,8 +1,16 @@
 {
     "historyFiles": [
-        {
-            "Year": 2024,
-            "Path": "/home/kimi450/playground/trading-212-parser/test-data/testdata-lifo-only.csv"
-        }
+            {
+				"Year": 2025,
+				"Path": "/home/kimi450/playground/trading-212-parser/test-data/testdata-2025.csv"
+			},
+			{
+				"Year": 2022,
+				"Path": "/home/kimi450/playground/trading-212-parser/test-data/testdata-2022.csv"
+			},
+			{
+				"Year": 2023,
+				"Path": "/home/kimi450/playground/trading-212-parser/test-data/testdata-2023.csv"
+			}
     ]
 }

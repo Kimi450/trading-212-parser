@@ -101,7 +101,7 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 		lastRecord := q.recordQueue.Peek(q.recordQueue.Size() - 1)
 		if TimeIsBetween(lastRecord.Time, sellRecord.Time.AddDate(0, 0, -7*4), sellRecord.Time) {
 			// Fits the bill for LIFO
-			log.Info("LIFO processing...")
+			log.Info("LIFO processing...", "against", lastRecord)
 			currRecord = lastRecord
 		}
 

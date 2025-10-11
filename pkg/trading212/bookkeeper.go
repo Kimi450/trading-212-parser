@@ -20,6 +20,7 @@ type BookKeeper interface {
 	FindOrCreateEntryAndProcess(log logr.Logger, name string, purchaseHistory Record) error
 	Print(log logr.Logger)
 	GetProfitForYear(year int) Profits
+	GetSaleAggregatesForYear(year int) Profits
 }
 
 func (b *BookKeeperStruct) Get(key string) PurchaseHistory {
@@ -70,6 +71,21 @@ func (b *BookKeeperStruct) GetProfitForYear(year int) Profits {
 	for _, ph := range b.book {
 		// get profit for each purchase history item for the year and sum it up
 		yearlyProfit := ph.GetProfitForYear(year)
+		profits.ETF = profits.ETF.Add(yearlyProfit.ETF)
+		profits.Stock = profits.Stock.Add(yearlyProfit.Stock)
+	}
+	profits.Overall = profits.Stock.Add(profits.ETF)
+	return profits
+}
+
+func (b *BookKeeperStruct) GetSaleAggregatesForYear(year int) Profits {
+	profits := Profits{
+		ETF:   decimal.NewFromInt(0),
+		Stock: decimal.NewFromInt(0),
+	}
+	for _, ph := range b.book {
+		// get profit for each purchase history item for the year and sum it up
+		yearlyProfit := ph.GetSaleAggregatesForYear(year)
 		profits.ETF = profits.ETF.Add(yearlyProfit.ETF)
 		profits.Stock = profits.Stock.Add(yearlyProfit.Stock)
 	}

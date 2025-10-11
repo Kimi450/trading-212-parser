@@ -14,17 +14,20 @@ type PurchaseHistory interface {
 	GetRecordQueue() RecordQueue
 	Process(log logr.Logger, newRecord *Record) error
 	GetProfitForYear(year int) Profits
+	GetSaleAggregatesForYear(year int) Profits
 }
 
 type PurchaseHistoryStruct struct {
-	recordQueue RecordQueue
-	profits     map[int]Profits
+	recordQueue    RecordQueue
+	profits        map[int]Profits
+	saleAggregates map[int]Profits
 }
 
 func NewPurchaseHistory(recordQueue RecordQueue) PurchaseHistory {
 	return &PurchaseHistoryStruct{
-		recordQueue: recordQueue,
-		profits:     make(map[int]Profits),
+		recordQueue:    recordQueue,
+		profits:        make(map[int]Profits),
+		saleAggregates: make(map[int]Profits),
 	}
 }
 
@@ -34,6 +37,10 @@ func (q *PurchaseHistoryStruct) GetRecordQueue() RecordQueue {
 
 func (q *PurchaseHistoryStruct) GetProfitForYear(year int) Profits {
 	return q.profits[year]
+}
+
+func (q *PurchaseHistoryStruct) GetSaleAggregatesForYear(year int) Profits {
+	return q.saleAggregates[year]
 }
 
 func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) error {
@@ -58,15 +65,20 @@ func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) erro
 		}
 
 		existingYearProfit := q.profits[year]
+		existingYearSaleAggregate := q.saleAggregates[year]
 
 		newRecordType := newRecord.GetType()
 		switch newRecordType {
 		case Stock:
 			existingYearProfit.Stock = existingYearProfit.Stock.Add(profit)
 			q.profits[year] = existingYearProfit
+			existingYearSaleAggregate.Stock = existingYearSaleAggregate.Stock.Add(newRecord.Total)
+			q.saleAggregates[year] = existingYearSaleAggregate
 		case ETF:
 			existingYearProfit.ETF = existingYearProfit.ETF.Add(profit)
 			q.profits[year] = existingYearProfit
+			existingYearSaleAggregate.ETF = existingYearSaleAggregate.ETF.Add(newRecord.Total)
+			q.saleAggregates[year] = existingYearSaleAggregate
 		default:
 			return merry.Errorf("invalid record type: %s", newRecordType)
 

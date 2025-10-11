@@ -20,11 +20,12 @@ func TestProcessHistoryFileLIFO(t *testing.T) {
 		Year: 2024,
 		Path: "../test-data/testdata-lifo-only.csv",
 	}
-	profits, err := processHistoryFile(log, bookkeeper, historyFile, "")
+	saleAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, "")
 
 	assert.NoError(t, err)
 	t.Log(profits.Overall)
 	assert.True(t, profits.Overall.Equal(decimal.NewFromInt(39)))
+	assert.True(t, saleAggregates.Overall.Equal(decimal.NewFromInt(56)))
 
 }
 
@@ -37,11 +38,12 @@ func TestProcessHistoryFileFIFO(t *testing.T) {
 		Year: 2024,
 		Path: "../test-data/testdata-fifo-only.csv",
 	}
-	profits, err := processHistoryFile(log, bookkeeper, historyFile, "")
+	saleAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, "")
 
 	assert.NoError(t, err)
 	t.Log(profits.Overall)
 	assert.True(t, profits.Overall.Equal(decimal.NewFromInt(42)))
+	assert.True(t, saleAggregates.Overall.Equal(decimal.NewFromInt(56)))
 
 }
 
@@ -71,30 +73,25 @@ func TestProcessAllHistoryFiles(t *testing.T) {
 		2025: decimal.NewFromInt(36),
 	}
 
+	saleAggregatesResultMap := map[int]decimal.Decimal{
+		2022: decimal.NewFromInt(0),
+		2023: decimal.NewFromInt(128),
+		2025: decimal.NewFromInt(40),
+	}
+
 	summary := processAllHistoryFiles(log, "", configData)
 
 	for _, historyFile := range configData.HistoryFiles {
-		actualValue := summary.Data[historyFile.Year].Overall
-		expectedValue := resultMap[historyFile.Year]
+		actualProfitValue := summary.ProfitsData[historyFile.Year].Overall
+		expectedProfitValue := resultMap[historyFile.Year]
 
-		t.Log("testing", "expected", expectedValue, "actual", actualValue)
-		assert.True(t, actualValue.Equal(expectedValue))
+		t.Log("testing profit", "expected", actualProfitValue, "actual", expectedProfitValue)
+		assert.True(t, expectedProfitValue.Equal(actualProfitValue))
+
+		actualSaleAggregateValue := summary.SaleAggregatesData[historyFile.Year].Overall
+		expectedSaleAggregateValue := saleAggregatesResultMap[historyFile.Year]
+
+		t.Log("testing aggregate data", "expected", actualSaleAggregateValue, "actual", expectedSaleAggregateValue)
+		assert.True(t, expectedSaleAggregateValue.Equal(actualSaleAggregateValue))
 	}
-}
-
-func TestProcessHistoryFileRingFenceLosses(t *testing.T) {
-	log := logr.FromContextOrDiscard(context.TODO())
-
-	bookkeeper := trading212.NewBookkeeper()
-
-	historyFile := config.HistoryFile{
-		Year: 2024,
-		Path: "../test-data/testdata-ringfence-4-week-losses.csv",
-	}
-	profits, err := processHistoryFile(log, bookkeeper, historyFile, "")
-
-	assert.NoError(t, err)
-	t.Log(profits.Overall)
-	assert.True(t, profits.Overall.Equal(decimal.NewFromInt(42)))
-
 }

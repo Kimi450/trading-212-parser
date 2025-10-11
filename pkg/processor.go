@@ -17,7 +17,8 @@ import (
 )
 
 type Summary struct {
-	Data map[int]trading212.Profits
+	ProfitsData        map[int]trading212.Profits
+	SaleAggregatesData map[int]trading212.Profits
 }
 
 func getLog(logBundleBaseDir string) (logr.Logger, string, error) {
@@ -67,7 +68,10 @@ func Process(logBundleBaseDir, configFilePath, ticker string) {
 }
 
 func processAllHistoryFiles(log logr.Logger, ticker string, configData config.Config) Summary {
-	summary := Summary{Data: make(map[int]trading212.Profits)}
+	summary := Summary{
+		ProfitsData:        make(map[int]trading212.Profits),
+		SaleAggregatesData: make(map[int]trading212.Profits),
+	}
 	bookkeeper := trading212.NewBookkeeper()
 
 	// sort files by year to ensure correct processing
@@ -78,27 +82,29 @@ func processAllHistoryFiles(log logr.Logger, ticker string, configData config.Co
 	for _, historyFile := range configData.HistoryFiles {
 		log.Info("processing file", "year", historyFile.Year, "path", historyFile.Path)
 
-		profits, err := processHistoryFile(log, bookkeeper, historyFile, ticker)
+		saleAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, ticker)
 		if err != nil {
 			log.Error(err, "failed to process file",
 				"year", historyFile.Year, "path", historyFile.Path)
 			os.Exit(1)
 		}
-		log.Info("profits",
+		log.Info("summary",
 			"year", historyFile.Year,
-			"value", profits,
+			"profits", profits,
+			"sale aggregates", saleAggregates,
 		)
 
-		summary.Data[historyFile.Year] = profits
+		summary.ProfitsData[historyFile.Year] = profits
+		summary.SaleAggregatesData[historyFile.Year] = saleAggregates
 	}
 	return summary
 }
 
 func processHistoryFile(log logr.Logger, bookkeeper trading212.BookKeeper,
-	historyFile config.HistoryFile, ticker string) (trading212.Profits, error) {
+	historyFile config.HistoryFile, ticker string) (trading212.Profits, trading212.Profits, error) {
 	file, err := os.Open(historyFile.Path)
 	if err != nil {
-		return trading212.Profits{}, merry.Errorf("failed to open file: %w", err)
+		return trading212.Profits{}, trading212.Profits{}, merry.Errorf("failed to open file: %w", err)
 	}
 	defer file.Close()
 
@@ -107,7 +113,7 @@ func processHistoryFile(log logr.Logger, bookkeeper trading212.BookKeeper,
 	for csvReader.Scan() {
 		record, err := csvReader.ToRecord()
 		if err != nil {
-			return trading212.Profits{}, merry.Errorf("failed to process file: %w", err)
+			return trading212.Profits{}, trading212.Profits{}, merry.Errorf("failed to process file: %w", err)
 		}
 
 		if ticker != "" && ticker != record.Ticker {
@@ -118,9 +124,11 @@ func processHistoryFile(log logr.Logger, bookkeeper trading212.BookKeeper,
 
 		err = bookkeeper.FindOrCreateEntryAndProcess(log, record.Ticker, record)
 		if err != nil {
-			return trading212.Profits{}, err
+			return trading212.Profits{}, trading212.Profits{}, err
 		}
 	}
 
-	return bookkeeper.GetProfitForYear(historyFile.Year), nil
+	return bookkeeper.GetSaleAggregatesForYear(historyFile.Year),
+		bookkeeper.GetProfitForYear(historyFile.Year),
+		nil
 }

@@ -1,7 +1,7 @@
 Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Stamp duty reserve tax,Currency (Stamp duty reserve tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)
-buy ,2024-01-01 00:00:00.000,US46125A1007,KIMI450,"Test stock",10,1,EUR,1,,"EUR",10,"EUR",,,,,,TESTID,0,"EUR"
-buy ,2024-03-01 00:00:00.000,US46125A1007,KIMI450,"Test stock",5,2,EUR,1,83.74,"EUR",10,"EUR",,,,,,TESTID,0,"EUR"
-sell,2024-05-01 00:00:00.000,US46125A1007,KIMI450,"Test stock",8,2,EUR,1,,"EUR",16,"EUR",,,,,,TESTID,0,"EUR"
-sell,2024-07-01 00:00:00.000,US46125A1007,KIMI450,"Test stock",4,10,EUR,1,,"EUR",40,"EUR",,,,,,TESTID,0,"EUR"
+buy ,2024-01-01 00:00:00.000,,KIMI450,"Test stock",10,1,EUR,1,,"EUR",10,"EUR",,,,,,TESTID,0,"EUR"
+buy ,2024-03-01 00:00:00.000,,KIMI450,"Test stock",5,2,EUR,1,83.74,"EUR",10,"EUR",,,,,,TESTID,0,"EUR"
+sell,2024-05-01 00:00:00.000,,KIMI450,"Test stock",8,2,EUR,1,,"EUR",16,"EUR",,,,,,TESTID,0,"EUR"
+sell,2024-07-01 00:00:00.000,,KIMI450,"Test stock",4,10,EUR,1,,"EUR",40,"EUR",,,,,,TESTID,0,"EUR"
 
 // profit should be 42

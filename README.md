@@ -10,7 +10,15 @@ This parser should parse the buy/sell transactions from history files exported f
 * Run `go run cmd/main.go -config configs/config.json`
 * Run `go run cmd/main.go --help` for usage
 
-The output text will show you your expected tax liability for all the years.
+The output text will show you your estimated tax liability for all the years.
+
+It follows
+- FIFO as a default mechanism
+- LIFO when a stock is sold after being bouth within the last 4 weeks (and taking FIFO when applicable in this case)
+- Currency exchange fees are proportionally taken when needed (partial shares being sold)
+- Currency exchange losses are reflected in the transaction history itself by the vertue of everything being converted to Euros
+    - This is to say that no specific provisions are made to handle these cases
+- **READ THE NOTES FOR EXCEPTIONS**
 
 ## Explanation
 
@@ -166,3 +174,33 @@ Section 546: This section provides additional rules around allowable losses for 
 In the context of the previous rule (about reacquiring shares), these sections would typically allow a loss to be offset against future gains, but the “bed and breakfasting” rule (Section 3) restricts this benefit temporarily if the shares are reacquired too soon after the sale.
 
 </details>
+
+## Notes
+
+### Ringfenced losses
+
+Not going to implement ringfence of 4 weeks
+
+As outlined in example 2 here: https://www.revenue.ie/en/gains-gifts-and-inheritance/transfering-an-asset/selling-or-disposing-of-shares.aspx
+
+```
+Shares sold within four weeks of acquisition
+
+Shares bought and sold within a four-week period cannot be offset against other gains.
+
+You can only deduct the loss from a gain made on a subsequent disposal of same-class shares acquired within the four weeks.
+
+    Example 2
+
+    On 1 April 2017, both Jane and Kevin individually bought 3,000 ordinary shares in Abcee Ltd for €3,000.
+
+    They both then sold their shares on 14 April 2017 for €2,000, making a loss of €1,000.
+
+    Jane did not buy any more ordinary shares in Abcee Ltd within four weeks making the loss. She cannot set her loss against any gain she may make.
+
+    Kevin bought more ordinary shares in Abcee Ltd on 21 April 2017. If Kevin makes a gain on the disposal of these shares in the future, he can deduct his loss of €1,000.
+```
+
+Reasons to not do this
+- Not really applicable for my datasets (manually checked)
+- Introducing this adds a lot of complexity with regards to how to handle the "pot" of losses that needs to be carried forward. It can be that one chooses to not use up this "pot" of losses in the year of filing for use later, or chose to use it for the year. Options of partial usage of the pot can also apply. And the same options need to be applied for every ticker as well. Complexity and control flow explodes, so at this point you definitely want an accountant.

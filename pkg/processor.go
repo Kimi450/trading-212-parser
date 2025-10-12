@@ -16,9 +16,9 @@ import (
 	"trading212-parser.kimi450.com/pkg/trading212"
 )
 
-type Summary struct {
-	ProfitsData        map[int]trading212.Profits
-	SaleAggregatesData map[int]trading212.Profits
+type Report struct {
+	ProfitsData        map[int]trading212.StockSummary
+	SaleAggregatesData map[int]trading212.StockSummary
 }
 
 func getLog(logBundleBaseDir string) (logr.Logger, string, error) {
@@ -67,10 +67,10 @@ func Process(logBundleBaseDir, configFilePath, ticker string) {
 	_ = processAllHistoryFiles(log, ticker, *configData)
 }
 
-func processAllHistoryFiles(log logr.Logger, ticker string, configData config.Config) Summary {
-	summary := Summary{
-		ProfitsData:        make(map[int]trading212.Profits),
-		SaleAggregatesData: make(map[int]trading212.Profits),
+func processAllHistoryFiles(log logr.Logger, ticker string, configData config.Config) Report {
+	summary := Report{
+		ProfitsData:        make(map[int]trading212.StockSummary),
+		SaleAggregatesData: make(map[int]trading212.StockSummary),
 	}
 	bookkeeper := trading212.NewBookkeeper()
 
@@ -101,10 +101,10 @@ func processAllHistoryFiles(log logr.Logger, ticker string, configData config.Co
 }
 
 func processHistoryFile(log logr.Logger, bookkeeper trading212.BookKeeper,
-	historyFile config.HistoryFile, ticker string) (trading212.Profits, trading212.Profits, error) {
+	historyFile config.HistoryFile, ticker string) (trading212.StockSummary, trading212.StockSummary, error) {
 	file, err := os.Open(historyFile.Path)
 	if err != nil {
-		return trading212.Profits{}, trading212.Profits{}, merry.Errorf("failed to open file: %w", err)
+		return trading212.StockSummary{}, trading212.StockSummary{}, merry.Errorf("failed to open file: %w", err)
 	}
 	defer file.Close()
 
@@ -113,7 +113,7 @@ func processHistoryFile(log logr.Logger, bookkeeper trading212.BookKeeper,
 	for csvReader.Scan() {
 		record, err := csvReader.ToRecord()
 		if err != nil {
-			return trading212.Profits{}, trading212.Profits{}, merry.Errorf("failed to process file: %w", err)
+			return trading212.StockSummary{}, trading212.StockSummary{}, merry.Errorf("failed to process file: %w", err)
 		}
 
 		if ticker != "" && ticker != record.Ticker {
@@ -124,7 +124,7 @@ func processHistoryFile(log logr.Logger, bookkeeper trading212.BookKeeper,
 
 		err = bookkeeper.FindOrCreateEntryAndProcess(log, record.Ticker, record)
 		if err != nil {
-			return trading212.Profits{}, trading212.Profits{}, err
+			return trading212.StockSummary{}, trading212.StockSummary{}, err
 		}
 	}
 

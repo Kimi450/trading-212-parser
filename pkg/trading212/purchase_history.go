@@ -13,21 +13,21 @@ import (
 type PurchaseHistory interface {
 	GetRecordQueue() RecordQueue
 	Process(log logr.Logger, newRecord *Record) error
-	GetProfitForYear(year int) Profits
-	GetSaleAggregatesForYear(year int) Profits
+	GetProfitForYear(year int) StockSummary
+	GetSaleAggregatesForYear(year int) StockSummary
 }
 
 type PurchaseHistoryStruct struct {
 	recordQueue    RecordQueue
-	profits        map[int]Profits
-	saleAggregates map[int]Profits
+	profits        map[int]StockSummary
+	saleAggregates map[int]StockSummary
 }
 
 func NewPurchaseHistory(recordQueue RecordQueue) PurchaseHistory {
 	return &PurchaseHistoryStruct{
 		recordQueue:    recordQueue,
-		profits:        make(map[int]Profits),
-		saleAggregates: make(map[int]Profits),
+		profits:        make(map[int]StockSummary),
+		saleAggregates: make(map[int]StockSummary),
 	}
 }
 
@@ -35,11 +35,11 @@ func (q *PurchaseHistoryStruct) GetRecordQueue() RecordQueue {
 	return q.recordQueue
 }
 
-func (q *PurchaseHistoryStruct) GetProfitForYear(year int) Profits {
+func (q *PurchaseHistoryStruct) GetProfitForYear(year int) StockSummary {
 	return q.profits[year]
 }
 
-func (q *PurchaseHistoryStruct) GetSaleAggregatesForYear(year int) Profits {
+func (q *PurchaseHistoryStruct) GetSaleAggregatesForYear(year int) StockSummary {
 	return q.saleAggregates[year]
 }
 

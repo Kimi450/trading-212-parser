@@ -24,9 +24,8 @@ func TestProcessHistoryFileLIFO(t *testing.T) {
 
 	assert.NoError(t, err)
 	t.Log(profits.Overall)
-	assert.True(t, profits.Overall.Equal(decimal.NewFromInt(39)))
-	assert.True(t, saleAggregates.Overall.Equal(decimal.NewFromInt(56)))
-
+	assertEqualDecimals(t, decimal.NewFromInt(39), profits.Overall)
+	assertEqualDecimals(t, decimal.NewFromInt(56), saleAggregates.Overall)
 }
 
 func TestProcessHistoryFileFIFO(t *testing.T) {
@@ -42,8 +41,8 @@ func TestProcessHistoryFileFIFO(t *testing.T) {
 
 	assert.NoError(t, err)
 	t.Log(profits.Overall)
-	assert.True(t, profits.Overall.Equal(decimal.NewFromInt(42)))
-	assert.True(t, saleAggregates.Overall.Equal(decimal.NewFromInt(56)))
+	assertEqualDecimals(t, decimal.NewFromInt(42), profits.Overall)
+	assertEqualDecimals(t, decimal.NewFromInt(56), saleAggregates.Overall)
 
 }
 
@@ -86,12 +85,35 @@ func TestProcessAllHistoryFiles(t *testing.T) {
 		expectedProfitValue := resultMap[historyFile.Year]
 
 		t.Log("testing profit", "expected", actualProfitValue, "actual", expectedProfitValue)
-		assert.True(t, expectedProfitValue.Equal(actualProfitValue))
+		assertEqualDecimals(t, expectedProfitValue, actualProfitValue)
 
 		actualSaleAggregateValue := summary.SaleAggregatesData[historyFile.Year].Overall
 		expectedSaleAggregateValue := saleAggregatesResultMap[historyFile.Year]
 
 		t.Log("testing aggregate data", "expected", actualSaleAggregateValue, "actual", expectedSaleAggregateValue)
-		assert.True(t, expectedSaleAggregateValue.Equal(actualSaleAggregateValue))
+		assertEqualDecimals(t, expectedSaleAggregateValue, actualSaleAggregateValue)
 	}
+}
+
+func TestProcessHistoryFileWashSaleEasy(t *testing.T) {
+	log := logr.FromContextOrDiscard(context.TODO())
+
+	bookkeeper := trading212.NewBookkeeper()
+
+	historyFile := config.HistoryFile{
+		Year: 2024,
+		Path: "../test-data/testdata-wash-sale.csv",
+	}
+	saleAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, "")
+
+	assert.NoError(t, err)
+	t.Log(profits.Overall)
+
+	assertEqualDecimals(t, decimal.NewFromInt(100), profits.Overall)
+	assertEqualDecimals(t, decimal.NewFromInt(1540), saleAggregates.Overall)
+}
+
+// makes the error message more readable
+func assertEqualDecimals(t *testing.T, expected, actual decimal.Decimal) {
+	assert.Equal(t, expected.InexactFloat64(), actual.InexactFloat64())
 }

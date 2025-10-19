@@ -1,0 +1,7 @@
+Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Stamp duty reserve tax,Currency (Stamp duty reserve tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)
+buy,2024-06-01 00:00:00.000,,ABC123,"Wash Sale Co",10,50,EUR,1,,"EUR",500,"EUR",,,,,Initial buy,TESTID,0,"EUR"
+buy,2024-06-01 00:00:00.000,,REGULAR,"Wash Sale Co",10,50,EUR,1,,"EUR",500,"EUR",,,,,Initial buy,TESTID,0,"EUR"
+sell,2024-06-15 00:00:00.000,,ABC123,"Wash Sale Co",10,40,EUR,1,,"EUR",400,"EUR",,,,,Loss of 100 EUR: -100 (isolated),TESTID,0,"EUR"
+buy,2024-06-20 00:00:00.000,,ABC123,"Wash Sale Co",10,45,EUR,1,,"EUR",450,"EUR",,,,,Rebuy within 30 days - wash sale applies: -100 (isolated),TESTID,0,"EUR"
+sell,2024-08-01 00:00:00.000,,REGULAR,"Wash Sale Co",10,60,EUR,1,,"EUR",600,"EUR",,,,,Sell for 100 profit (cannot offset against wash sale): 100 profit and -100 isolated loss,TESTID,0,"EUR"
+sell,2024-08-01 00:00:00.000,,ABC123,"Wash Sale Co",10,54,EUR,1,,"EUR",540,"EUR",,,,,Sell for 90 profit and can offset only against ABC123:: 100 profit and -10 isolated loss,TESTID,0,"EUR"

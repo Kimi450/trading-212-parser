@@ -1,0 +1,9 @@
+Action,,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Stamp duty reserve tax,Currency (Stamp duty reserve tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)
+buy,,2025-01-30 15:34:40,,AVGO,Broadcom,2,218.3,USD,1.04337435,,EUR,419.08,EUR,,,,,,ID_1,0.63,EUR
+buy,,2025-03-05 14:30:01,,AVGO,Broadcom,1,191.98,USD,1.07503639,,EUR,178.85,EUR,,,,,,ID_2,0.27,EUR
+buy,,2025-03-06 19:18:36,,AVGO,Broadcom,0.5,179.71,USD,1.07882098,,EUR,83.41,EUR,,,,,,ID_3,0.12,EUR
+buy,,2025-03-11 17:01:03,,AVGO,Broadcom,0.5,190.1,USD,1.09252873,,EUR,87.13,EUR,,,,,,ID_4,0.13,EUR
+buy,,2025-03-11 17:01:11,,AVGO,Broadcom,0.5,190.05,USD,1.09249252,,EUR,87.11,EUR,,,,,,ID_5,0.13,EUR
+buy,,2025-04-08 16:18:25,,AVGO,Broadcom,0.5,163.66,USD,1.09077579,,EUR,75.13,EUR,,,,,,ID_6,0.11,EUR
+buy,,2025-04-09 17:51:51,,AVGO,Broadcom,0.5,176.4,USD,1.10043668,,EUR,80.27,EUR,,,,,,ID_7,0.12,EUR
+sell,,2025-06-30 14:08:02,,AVGO,Broadcom,5.5,273.38,USD,1.17205172,273.4,EUR,1280.95,EUR,,,,,,ID_8,1.92,EUR

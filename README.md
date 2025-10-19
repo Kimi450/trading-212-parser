@@ -181,8 +181,7 @@ In the context of the previous rule (about reacquiring shares), these sections w
 
 Not going to implement ringfence of 4 weeks
 
-As outlined in example 2 here: https://www.revenue.ie/en/gains-gifts-and-inheritance/transfering-an-asset/selling-or-disposing-of-shares.aspx
-
+As outlined in example 2 here: https://www.revenue.ie/en/gains-gifts-and-inheritance/transfering-an-asset/selling-or-disposing-of-shares.aspx (which is apparently not fully correct either)
 ```
 Shares sold within four weeks of acquisition
 
@@ -201,6 +200,17 @@ You can only deduct the loss from a gain made on a subsequent disposal of same-c
     Kevin bought more ordinary shares in Abcee Ltd on 21 April 2017. If Kevin makes a gain on the disposal of these shares in the future, he can deduct his loss of €1,000.
 ```
 
+From the Revenue correspondence, I also infer that if the loss can only be offset against gain on the same stock - then I can just chose to write off those losses and not use them to offset any profits (in effect paying more taxes for the sake of not haivng to deal with wash sales - which works in my case as it is meniscule).
+
 Reasons to not do this
 - Not really applicable for my datasets (manually checked)
-- Introducing this adds a lot of complexity with regards to how to handle the "pot" of losses that needs to be carried forward. It can be that one chooses to not use up this "pot" of losses in the year of filing for use later, or chose to use it for the year. Options of partial usage of the pot can also apply. And the same options need to be applied for every ticker as well. Complexity and control flow explodes, so at this point you definitely want an accountant.
+- Introducing this adds a lot of complexity with regards to how to handle the "pot" of losses that needs to be carried forward.
+    - which loss trades to use complex sales where LIFO and FIFO of diff lots with diff profits and losses are used
+    - coupling the above with the possibility of several wash sales in the same period all overlapping with one another where you end up needing to maintain a stack of loss "pots" where implications of the above calculation are unknown and further complicate things for me.
+    - I cannot reliably say it will work as expected or not and that is an inherint risk for me.
+
+Leaving it as a plain FIFO/LIFO parser is enough with manual intervention needed to CHECK and ACCOUNT for wash sales.
+
+References:
+- https://www.reddit.com/r/irishpersonalfinance/comments/1gamjte/shares_cgt_calculations_with_their_caveats/
+- https://www.reddit.com/r/irishpersonalfinance/comments/p46rf7/cgt_share_sale_within_4_weeks_of_acqusition/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button

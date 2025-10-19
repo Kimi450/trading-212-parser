@@ -13,18 +13,24 @@ import (
 type PurchaseHistory interface {
 	GetRecordQueue() RecordQueue
 	Process(log logr.Logger, newRecord *Record) error
-	GetProfitForYear(year int) Profits
+	GetProfitForYear(year int) StockSummary
+	GetSaleAggregatesForYear(year int) StockSummary
+	GetLossAggregatesForYear(year int) StockSummary
 }
 
 type PurchaseHistoryStruct struct {
-	recordQueue RecordQueue
-	profits     map[int]Profits
+	recordQueue    RecordQueue
+	profits        map[int]StockSummary
+	saleAggregates map[int]StockSummary
+	lossAggregates map[int]StockSummary
 }
 
 func NewPurchaseHistory(recordQueue RecordQueue) PurchaseHistory {
 	return &PurchaseHistoryStruct{
-		recordQueue: recordQueue,
-		profits:     make(map[int]Profits),
+		recordQueue:    recordQueue,
+		profits:        make(map[int]StockSummary),
+		saleAggregates: make(map[int]StockSummary),
+		lossAggregates: make(map[int]StockSummary),
 	}
 }
 
@@ -32,8 +38,16 @@ func (q *PurchaseHistoryStruct) GetRecordQueue() RecordQueue {
 	return q.recordQueue
 }
 
-func (q *PurchaseHistoryStruct) GetProfitForYear(year int) Profits {
+func (q *PurchaseHistoryStruct) GetProfitForYear(year int) StockSummary {
 	return q.profits[year]
+}
+
+func (q *PurchaseHistoryStruct) GetSaleAggregatesForYear(year int) StockSummary {
+	return q.saleAggregates[year]
+}
+
+func (q *PurchaseHistoryStruct) GetLossAggregatesForYear(year int) StockSummary {
+	return q.lossAggregates[year]
 }
 
 func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) error {
@@ -58,15 +72,30 @@ func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) erro
 		}
 
 		existingYearProfit := q.profits[year]
+		existingYearSaleAggregate := q.saleAggregates[year]
+		existingYearLossAggregate := q.lossAggregates[year]
 
 		newRecordType := newRecord.GetType()
-		if newRecordType == Stock {
+		switch newRecordType {
+		case Stock:
 			existingYearProfit.Stock = existingYearProfit.Stock.Add(profit)
 			q.profits[year] = existingYearProfit
-		} else if newRecordType == ETF {
+			existingYearSaleAggregate.Stock = existingYearSaleAggregate.Stock.Add(newRecord.Total)
+			q.saleAggregates[year] = existingYearSaleAggregate
+			if profit.LessThan(decimal.NewFromInt(0)) {
+				existingYearLossAggregate.Stock = existingYearLossAggregate.Stock.Add(profit)
+				q.lossAggregates[year] = existingYearLossAggregate
+			}
+		case ETF:
 			existingYearProfit.ETF = existingYearProfit.ETF.Add(profit)
 			q.profits[year] = existingYearProfit
-		} else {
+			existingYearSaleAggregate.ETF = existingYearSaleAggregate.ETF.Add(newRecord.Total)
+			q.saleAggregates[year] = existingYearSaleAggregate
+			if profit.LessThan(decimal.NewFromInt(0)) {
+				existingYearLossAggregate.ETF = existingYearLossAggregate.ETF.Add(profit)
+				q.lossAggregates[year] = existingYearLossAggregate
+			}
+		default:
 			return merry.Errorf("invalid record type: %s", newRecordType)
 
 		}
@@ -84,7 +113,9 @@ func TimeIsBetween(t, min, max time.Time) bool {
 
 // FIFO default
 // If sold withing 4 weeks of purchase, LIFO will apply when needed
-// If bought within 4 weeks of sale, if a loss occurs on the initial disposal, then this loss can only be offset against a gain on the sale of shares of the same class which were purchased within 4 weeks of that sale.
+// If bought within 4 weeks of sale, if a loss occurs on the initial disposal,
+// then this loss can only be offset against a gain on the sale of shares of
+// the same class which were purchased within 4 weeks of that sale.
 func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 	log logr.Logger, sellRecord Record) (decimal.Decimal, error) {
 	var profit decimal.Decimal
@@ -98,7 +129,7 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 		lastRecord := q.recordQueue.Peek(q.recordQueue.Size() - 1)
 		if TimeIsBetween(lastRecord.Time, sellRecord.Time.AddDate(0, 0, -7*4), sellRecord.Time) {
 			// Fits the bill for LIFO
-			log.Info("LIFO processing...")
+			log.Info("LIFO processing...", "against", lastRecord)
 			currRecord = lastRecord
 		}
 

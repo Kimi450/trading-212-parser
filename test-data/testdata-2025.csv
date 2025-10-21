@@ -1,2 +1,4 @@
 Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Stamp duty reserve tax,Currency (Stamp duty reserve tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)
 sell,2025-07-01 00:00:00.000,,KIMI450,"test",4,10,EUR,1,,"EUR",40,"EUR",,,,,,TESTID_9,0,"EUR"
+sell ,2025-07-02 00:00:00.000,,KIMI452,"test",1,100,EUR,1,,"EUR",100,"EUR",,,,,,TESTID_3,0,"EUR"
+sell ,2025-07-02 00:00:00.000,,KIMI452,"test",1,1,EUR,1,,"EUR",1,"EUR",,,,,,TESTID_3,0,"EUR"

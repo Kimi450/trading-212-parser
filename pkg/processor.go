@@ -19,6 +19,7 @@ import (
 type Report struct {
 	ProfitsData        map[int]trading212.StockSummary
 	SaleAggregatesData map[int]trading212.StockSummary
+	LossAggregatesData map[int]trading212.StockSummary
 }
 
 func getLog(logBundleBaseDir string) (logr.Logger, string, error) {
@@ -71,6 +72,7 @@ func processAllHistoryFiles(log logr.Logger, ticker string, configData config.Co
 	summary := Report{
 		ProfitsData:        make(map[int]trading212.StockSummary),
 		SaleAggregatesData: make(map[int]trading212.StockSummary),
+		LossAggregatesData: make(map[int]trading212.StockSummary),
 	}
 	bookkeeper := trading212.NewBookkeeper()
 
@@ -82,7 +84,7 @@ func processAllHistoryFiles(log logr.Logger, ticker string, configData config.Co
 	for _, historyFile := range configData.HistoryFiles {
 		log.Info("processing file", "year", historyFile.Year, "path", historyFile.Path)
 
-		saleAggregates, lossAggretates, profits, err := processHistoryFile(log, bookkeeper, historyFile, ticker)
+		saleAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, ticker)
 		if err != nil {
 			log.Error(err, "failed to process file",
 				"year", historyFile.Year, "path", historyFile.Path)
@@ -92,11 +94,12 @@ func processAllHistoryFiles(log logr.Logger, ticker string, configData config.Co
 			"year", historyFile.Year,
 			"profits", profits,
 			"sale aggregates", saleAggregates,
-			"loss aggregates", lossAggretates,
+			"loss aggregates", lossAggregates,
 		)
 
 		summary.ProfitsData[historyFile.Year] = profits
 		summary.SaleAggregatesData[historyFile.Year] = saleAggregates
+		summary.LossAggregatesData[historyFile.Year] = lossAggregates
 	}
 	return summary
 }

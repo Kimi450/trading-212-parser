@@ -1,4 +1,8 @@
 Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Stamp duty reserve tax,Currency (Stamp duty reserve tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)
 buy ,2022-01-01 00:00:00.000,,KIMI450,"test",10,1,EUR,1,,"EUR",10,"EUR",,,,,,TESTID_1,0,"EUR"
-buy ,2022-03-01 00:00:00.000,,KIMI451,"test",5,2,EUR,1,83.74,"EUR",10,"EUR",,,,,,TESTID_2,0,"EUR"
-buy ,2022-03-02 00:00:00.000,,KIMI451,"test",7,3,EUR,1,83.74,"EUR",21,"EUR",,,,,,TESTID_3,0,"EUR"
+buy ,2022-03-01 00:00:00.000,,KIMI451,"test",5,2,EUR,1,,"EUR",10,"EUR",,,,,,TESTID_2,0,"EUR"
+buy ,2022-03-02 00:00:00.000,,KIMI451,"test",7,3,EUR,1,,"EUR",21,"EUR",,,,,,TESTID_3,0,"EUR"
+buy ,2022-03-03 00:00:00.000,,KIMI452,"test",10,5,EUR,1,,"EUR",50,"EUR",,,,,,TESTID_3,0,"EUR"
+buy ,2022-05-03 00:00:00.000,,KIMI452,"test",9,10,EUR,1,,"EUR",90,"EUR",,,,,,TESTID_3,0,"EUR"
+sell ,2022-05-04 00:00:00.000,,KIMI452,"test",10,3,EUR,1,,"EUR",30,"EUR",,,,,,TESTID_3,0,"EUR"
+sell ,2022-06-02 00:00:00.000,,KIMI452,"test",7,10,EUR,1,,"EUR",70,"EUR",,,,,,TESTID_3,0,"EUR"

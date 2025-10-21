@@ -41,7 +41,7 @@ func getLog(logBundleBaseDir string) (logr.Logger, string, error) {
 	return log, logBundleDir, nil
 }
 
-func Process(logBundleBaseDir, configFilePath string, allowTickers []string) {
+func Process(logBundleBaseDir, configFilePath string, allowTickers, skipTickers []string) {
 	var err error
 	log := logr.FromContextOrDiscard(context.TODO())
 	logBundleDir := ""
@@ -57,7 +57,8 @@ func Process(logBundleBaseDir, configFilePath string, allowTickers []string) {
 	log.Info("running",
 		"logBundleDir", logBundleDir,
 		"configFilePath", configFilePath,
-		"ticker", allowTickers)
+		"allowTickers", allowTickers,
+		"skipTickers", skipTickers)
 
 	configData, err := config.ParseConfigFile(configFilePath)
 	if err != nil {
@@ -65,10 +66,10 @@ func Process(logBundleBaseDir, configFilePath string, allowTickers []string) {
 		os.Exit(1)
 	}
 
-	_ = processAllHistoryFiles(log, allowTickers, *configData)
+	_ = processAllHistoryFiles(log, allowTickers, skipTickers, *configData)
 }
 
-func processAllHistoryFiles(log logr.Logger, allowTickers []string, configData config.Config) Report {
+func processAllHistoryFiles(log logr.Logger, allowTickers, skipTickers []string, configData config.Config) Report {
 	summary := Report{
 		ProfitsData:        make(map[int]trading212.StockSummary),
 		SaleAggregatesData: make(map[int]trading212.StockSummary),
@@ -84,7 +85,7 @@ func processAllHistoryFiles(log logr.Logger, allowTickers []string, configData c
 	for _, historyFile := range configData.HistoryFiles {
 		log.Info("processing file", "year", historyFile.Year, "path", historyFile.Path)
 
-		saleAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, allowTickers)
+		saleAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, allowTickers, skipTickers)
 		if err != nil {
 			log.Error(err, "failed to process file",
 				"year", historyFile.Year, "path", historyFile.Path)
@@ -106,7 +107,7 @@ func processAllHistoryFiles(log logr.Logger, allowTickers []string, configData c
 
 func processHistoryFile(log logr.Logger, bookkeeper trading212.BookKeeper,
 	historyFile config.HistoryFile,
-	allowTickers []string) (trading212.StockSummary, trading212.StockSummary, trading212.StockSummary, error) {
+	allowTickers, skipTickers []string) (trading212.StockSummary, trading212.StockSummary, trading212.StockSummary, error) {
 
 	file, err := os.Open(historyFile.Path)
 	if err != nil {
@@ -117,17 +118,19 @@ func processHistoryFile(log logr.Logger, bookkeeper trading212.BookKeeper,
 	// read csv values using csv.Reader
 	csvReader := trading212.NewScanner(file)
 	for csvReader.Scan() {
-		for _, testTicker := range allowTickers {
-			record, err := csvReader.ToRecord()
-			if err != nil {
-				return trading212.StockSummary{}, trading212.StockSummary{}, trading212.StockSummary{}, merry.Errorf("failed to process file: %w", err)
-			}
+		record, err := csvReader.ToRecord()
+		if err != nil {
+			return trading212.StockSummary{}, trading212.StockSummary{}, trading212.StockSummary{}, merry.Errorf("failed to process file: %w", err)
+		}
 
-			if record.Ticker == testTicker {
-				err = bookkeeper.FindOrCreateEntryAndProcess(log, record.Ticker, record)
-				if err != nil {
-					return trading212.StockSummary{}, trading212.StockSummary{}, trading212.StockSummary{}, err
-				}
+		if len(skipTickers) > 0 && valueInList(record.Ticker, skipTickers) {
+			continue
+		}
+
+		if len(allowTickers) == 0 || valueInList(record.Ticker, allowTickers) {
+			err = bookkeeper.FindOrCreateEntryAndProcess(log, record.Ticker, record)
+			if err != nil {
+				return trading212.StockSummary{}, trading212.StockSummary{}, trading212.StockSummary{}, err
 			}
 		}
 	}
@@ -136,4 +139,13 @@ func processHistoryFile(log logr.Logger, bookkeeper trading212.BookKeeper,
 		bookkeeper.GetLossAggregatesForYear(historyFile.Year),
 		bookkeeper.GetProfitForYear(historyFile.Year),
 		nil
+}
+
+func valueInList(value string, list []string) bool {
+	for _, i := range list {
+		if value == i {
+			return true
+		}
+	}
+	return false
 }

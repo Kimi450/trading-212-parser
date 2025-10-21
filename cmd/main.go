@@ -42,6 +42,7 @@ type ScriptArgs struct {
 	LogBundleBaseDir string
 	Config           string
 	AllowTickers     arrayFlags
+	SkipTickers      arrayFlags
 }
 
 func (scriptArgs *ScriptArgs) parseArgs() error {
@@ -58,7 +59,11 @@ func (scriptArgs *ScriptArgs) parseArgs() error {
 	}
 
 	var allowTickers arrayFlags
-	flag.Var(&allowTickers, "ticker", "Process only the given ticker(s). Specify multiple times for multiple tickers.")
+	flag.Var(&allowTickers, "allowTickers", "Process only the given ticker(s). Specify more as a comma separated list.")
+
+	var skipTickers arrayFlags
+	flag.Var(&skipTickers, "skipTickers", "Skip the given ticker(s). Specify more as a comma separated list.")
+
 	logBundleBaseDir := flag.String("log-bundle-base-dir", cwd,
 		"Base directory for the log bundle generated")
 
@@ -71,6 +76,7 @@ func (scriptArgs *ScriptArgs) parseArgs() error {
 	scriptArgs.LogBundleBaseDir = *logBundleBaseDir
 	scriptArgs.Config = *config
 	scriptArgs.AllowTickers = allowTickers
+	scriptArgs.SkipTickers = skipTickers
 
 	return nil
 }
@@ -102,5 +108,5 @@ func main() {
 		panic(fmt.Errorf("failed to validate args: %w", err))
 	}
 
-	pkg.Process(scriptArgs.LogBundleBaseDir, scriptArgs.Config, scriptArgs.AllowTickers)
+	pkg.Process(scriptArgs.LogBundleBaseDir, scriptArgs.Config, scriptArgs.AllowTickers, scriptArgs.SkipTickers)
 }

@@ -6,15 +6,42 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/ansel1/merry/v2"
 	"trading212-parser.kimi450.com/pkg"
 )
 
+type arrayFlags []string
+
+// String is the method to format the flag's value, part of the flag.Value interface.
+// The String method's output will be used in diagnostics.
+func (i *arrayFlags) String() string {
+	return fmt.Sprint(*i)
+}
+
+// Set is the method to set the flag value, part of the flag.Value interface.
+// Set's argument is a string to be parsed to set the flag.
+// It's a comma-separated list, so we split it.
+func (i *arrayFlags) Set(value string) error {
+	// If we wanted to allow the flag to be set multiple times,
+	// accumulating values, we would delete this if statement.
+	// That would permit usages such as
+	//	-deltaT 10s -deltaT 15s
+	// and other combinations.
+	if len(*i) > 0 {
+		return errors.New("arrayFlags flag already set")
+	}
+	for _, dt := range strings.Split(value, ",") {
+		*i = append(*i, dt)
+	}
+	return nil
+}
+
 type ScriptArgs struct {
 	LogBundleBaseDir string
 	Config           string
-	Ticker           string
+	AllowTickers     arrayFlags
 }
 
 func (scriptArgs *ScriptArgs) parseArgs() error {
@@ -30,9 +57,8 @@ func (scriptArgs *ScriptArgs) parseArgs() error {
 		return merry.Errorf("failed to get working directory: %w", err)
 	}
 
-	ticker := flag.String("ticker", "",
-		"Process only the given ticker")
-
+	var allowTickers arrayFlags
+	flag.Var(&allowTickers, "ticker", "Process only the given ticker(s). Specify multiple times for multiple tickers.")
 	logBundleBaseDir := flag.String("log-bundle-base-dir", cwd,
 		"Base directory for the log bundle generated")
 
@@ -44,7 +70,7 @@ func (scriptArgs *ScriptArgs) parseArgs() error {
 
 	scriptArgs.LogBundleBaseDir = *logBundleBaseDir
 	scriptArgs.Config = *config
-	scriptArgs.Ticker = *ticker
+	scriptArgs.AllowTickers = allowTickers
 
 	return nil
 }
@@ -76,5 +102,5 @@ func main() {
 		panic(fmt.Errorf("failed to validate args: %w", err))
 	}
 
-	pkg.Process(scriptArgs.LogBundleBaseDir, scriptArgs.Config, scriptArgs.Ticker)
+	pkg.Process(scriptArgs.LogBundleBaseDir, scriptArgs.Config, scriptArgs.AllowTickers)
 }

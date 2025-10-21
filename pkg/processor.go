@@ -41,7 +41,7 @@ func getLog(logBundleBaseDir string) (logr.Logger, string, error) {
 	return log, logBundleDir, nil
 }
 
-func Process(logBundleBaseDir, configFilePath, ticker string) {
+func Process(logBundleBaseDir, configFilePath string, allowTickers []string) {
 	var err error
 	log := logr.FromContextOrDiscard(context.TODO())
 	logBundleDir := ""
@@ -57,7 +57,7 @@ func Process(logBundleBaseDir, configFilePath, ticker string) {
 	log.Info("running",
 		"logBundleDir", logBundleDir,
 		"configFilePath", configFilePath,
-		"ticker", ticker)
+		"ticker", allowTickers)
 
 	configData, err := config.ParseConfigFile(configFilePath)
 	if err != nil {
@@ -65,10 +65,10 @@ func Process(logBundleBaseDir, configFilePath, ticker string) {
 		os.Exit(1)
 	}
 
-	_ = processAllHistoryFiles(log, ticker, *configData)
+	_ = processAllHistoryFiles(log, allowTickers, *configData)
 }
 
-func processAllHistoryFiles(log logr.Logger, ticker string, configData config.Config) Report {
+func processAllHistoryFiles(log logr.Logger, allowTickers []string, configData config.Config) Report {
 	summary := Report{
 		ProfitsData:        make(map[int]trading212.StockSummary),
 		SaleAggregatesData: make(map[int]trading212.StockSummary),
@@ -84,7 +84,7 @@ func processAllHistoryFiles(log logr.Logger, ticker string, configData config.Co
 	for _, historyFile := range configData.HistoryFiles {
 		log.Info("processing file", "year", historyFile.Year, "path", historyFile.Path)
 
-		saleAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, ticker)
+		saleAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, allowTickers)
 		if err != nil {
 			log.Error(err, "failed to process file",
 				"year", historyFile.Year, "path", historyFile.Path)
@@ -106,7 +106,7 @@ func processAllHistoryFiles(log logr.Logger, ticker string, configData config.Co
 
 func processHistoryFile(log logr.Logger, bookkeeper trading212.BookKeeper,
 	historyFile config.HistoryFile,
-	ticker string) (trading212.StockSummary, trading212.StockSummary, trading212.StockSummary, error) {
+	allowTickers []string) (trading212.StockSummary, trading212.StockSummary, trading212.StockSummary, error) {
 
 	file, err := os.Open(historyFile.Path)
 	if err != nil {
@@ -117,20 +117,18 @@ func processHistoryFile(log logr.Logger, bookkeeper trading212.BookKeeper,
 	// read csv values using csv.Reader
 	csvReader := trading212.NewScanner(file)
 	for csvReader.Scan() {
-		record, err := csvReader.ToRecord()
-		if err != nil {
-			return trading212.StockSummary{}, trading212.StockSummary{}, trading212.StockSummary{}, merry.Errorf("failed to process file: %w", err)
-		}
+		for _, testTicker := range allowTickers {
+			record, err := csvReader.ToRecord()
+			if err != nil {
+				return trading212.StockSummary{}, trading212.StockSummary{}, trading212.StockSummary{}, merry.Errorf("failed to process file: %w", err)
+			}
 
-		if ticker != "" && ticker != record.Ticker {
-			// if a ticker is passed, and if the record is not of the wanted ticker
-			// skip the record
-			continue
-		}
-
-		err = bookkeeper.FindOrCreateEntryAndProcess(log, record.Ticker, record)
-		if err != nil {
-			return trading212.StockSummary{}, trading212.StockSummary{}, trading212.StockSummary{}, err
+			if record.Ticker == testTicker {
+				err = bookkeeper.FindOrCreateEntryAndProcess(log, record.Ticker, record)
+				if err != nil {
+					return trading212.StockSummary{}, trading212.StockSummary{}, trading212.StockSummary{}, err
+				}
+			}
 		}
 	}
 

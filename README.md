@@ -7,6 +7,8 @@ This parser should parse the buy/sell transactions from history files exported f
 ## Running
 
 * Populate the `./configs/config.json` file with a map of `Year` to `Path` of the history file exported from Trading 212
+    * The files MUST be compartmentalised into years
+    * The files contents MUST be ordered chronologically (each line is process with the history of previous lines - if not ordered, the transactions would not make sense)
 * Run `go run cmd/main.go -config configs/config.json`
 * Run `go run cmd/main.go --help` for usage
 

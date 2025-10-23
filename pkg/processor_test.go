@@ -20,7 +20,7 @@ func TestProcessHistoryFileLIFO(t *testing.T) {
 		Year: 2024,
 		Path: "../test-data/testdata-lifo-only.csv",
 	}
-	saleAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, "")
+	saleAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, []string{}, []string{})
 
 	assert.NoError(t, err)
 	t.Log(profits.Overall)
@@ -39,7 +39,7 @@ func TestProcessHistoryFileFIFO(t *testing.T) {
 		Year: 2024,
 		Path: "../test-data/testdata-fifo-only.csv",
 	}
-	saleAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, "")
+	saleAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, []string{}, []string{})
 
 	assert.NoError(t, err)
 	t.Log(profits.Overall)
@@ -87,7 +87,7 @@ func TestProcessAllHistoryFiles(t *testing.T) {
 		2025: decimal.NewFromInt(-4),
 	}
 
-	summary := processAllHistoryFiles(log, "", configData)
+	summary := processAllHistoryFiles(log, []string{}, []string{}, configData)
 
 	for _, historyFile := range configData.HistoryFiles {
 		actualProfitValue := summary.ProfitsData[historyFile.Year].Overall
@@ -128,7 +128,7 @@ func TestProcessHistoryFileWashSaleEasy(t *testing.T) {
 		Year: 2024,
 		Path: "../test-data/testdata-wash-sale.csv",
 	}
-	saleAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, "")
+	saleAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, []string{}, []string{})
 
 	assert.NoError(t, err)
 	t.Log(profits.Overall)

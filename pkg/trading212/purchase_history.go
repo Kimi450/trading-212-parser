@@ -118,7 +118,8 @@ func TimeIsBetween(t, min, max time.Time) bool {
 // the same class which were purchased within 4 weeks of that sale.
 func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 	log logr.Logger, sellRecord Record) (decimal.Decimal, error) {
-	var profit decimal.Decimal
+	var buyPrice, sellPrice, profit decimal.Decimal
+	var err error
 
 	for !sellRecord.NoOfShares.Equal(decimal.NewFromInt(0)) {
 		if q.recordQueue.Size() <= 0 {
@@ -135,11 +136,19 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 
 		if sellRecord.NoOfShares.LessThanOrEqual(currRecord.NoOfShares) {
 			// more shares available than to sell
-			price, err := currRecord.GetActualPriceForQuantity(sellRecord.NoOfShares, true)
+
+			// get price of shares to be sold
+			buyPrice, err = currRecord.GetActualPriceForQuantity(sellRecord.NoOfShares, true)
 			if err != nil {
-				return profit, merry.Errorf("failed to get price for sell action: %w", err)
+				return profit, merry.Errorf("failed to get buy price for sell action: %w", err)
 			}
-			profit = profit.Add(sellRecord.Total).Sub(price)
+
+			// get price of sale action
+			sellPrice, err = sellRecord.GetActualPriceForQuantity(sellRecord.NoOfShares, false)
+			if err != nil {
+				return profit, merry.Errorf("failed to get sell price for sell action: %w", err)
+			}
+
 			sellRecord.NoOfShares = decimal.NewFromInt(0)
 
 		} else {
@@ -147,20 +156,21 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 			currRecorNoOfShares := currRecord.NoOfShares
 
 			// sell off all stocks in this "buy record" to get the "buy price" at market value
-			buyCost, err := currRecord.GetActualPriceForQuantity(currRecord.NoOfShares, true)
+			buyPrice, err = currRecord.GetActualPriceForQuantity(currRecord.NoOfShares, true)
 			if err != nil {
 				return profit, merry.Errorf("failed to get price for sell action: %w", err)
 			}
 
 			// get the profit from the sale for the number of shares you bought above
-			sellProfit, err := sellRecord.GetActualPriceForQuantity(currRecorNoOfShares, false)
+			sellPrice, err = sellRecord.GetActualPriceForQuantity(currRecorNoOfShares, false)
 			if err != nil {
 				return profit, merry.Errorf("failed to get price for sell action: %w", err)
 			}
 
-			profit = profit.Add(sellProfit.Sub(buyCost))
-
 		}
+
+		profit = profit.Add(sellPrice.Sub(buyPrice))
+
 		if currRecord.NoOfShares.LessThanOrEqual(decimal.NewFromInt(0)) {
 			// get rid of record if it has no shares in it
 			q.recordQueue.RemoveItem(currRecord)

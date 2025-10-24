@@ -20,13 +20,14 @@ func TestProcessHistoryFileLIFO(t *testing.T) {
 		Year: 2024,
 		Path: "../test-data/testdata-lifo-only.csv",
 	}
-	saleAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, []string{}, []string{})
+	saleAggregates, profitAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, []string{}, []string{})
 
 	assert.NoError(t, err)
 	t.Log(profits.Overall)
 	assertEqualDecimals(t, decimal.NewFromInt(39), profits.Overall)
 	assertEqualDecimals(t, decimal.NewFromInt(56), saleAggregates.Overall)
 	assertEqualDecimals(t, decimal.NewFromInt(0), lossAggregates.Overall)
+	assertEqualDecimals(t, decimal.NewFromInt(39), profitAggregates.Overall)
 
 }
 
@@ -39,13 +40,14 @@ func TestProcessHistoryFileFIFO(t *testing.T) {
 		Year: 2024,
 		Path: "../test-data/testdata-fifo-only.csv",
 	}
-	saleAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, []string{}, []string{})
+	saleAggregates, profitAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, []string{}, []string{})
 
 	assert.NoError(t, err)
 	t.Log(profits.Overall)
 	assertEqualDecimals(t, decimal.NewFromInt(42), profits.Overall)
 	assertEqualDecimals(t, decimal.NewFromInt(56), saleAggregates.Overall)
 	assertEqualDecimals(t, decimal.NewFromInt(0), lossAggregates.Overall)
+	assertEqualDecimals(t, decimal.NewFromInt(42), profitAggregates.Overall)
 
 }
 
@@ -87,6 +89,12 @@ func TestProcessAllHistoryFiles(t *testing.T) {
 		2025: decimal.NewFromInt(-4),
 	}
 
+	profitAggregatesResultMap := map[int]decimal.Decimal{
+		2022: decimal.NewFromInt(35),
+		2023: decimal.NewFromInt(70),
+		2025: decimal.NewFromInt(131),
+	}
+
 	summary := processAllHistoryFiles(log, []string{}, []string{}, configData)
 
 	for _, historyFile := range configData.HistoryFiles {
@@ -116,6 +124,15 @@ func TestProcessAllHistoryFiles(t *testing.T) {
 			"expected", actualLossAggregateValue,
 			"actual", expectedLossAggregateValue)
 		assertEqualDecimals(t, expectedLossAggregateValue, actualLossAggregateValue)
+
+		actualProfitAggregateValue := summary.ProfitAggregatesData[historyFile.Year].Overall
+		expectedProfitAggregateValue := profitAggregatesResultMap[historyFile.Year]
+
+		t.Log("testing profit aggregate data",
+			"year", historyFile.Year,
+			"expected", actualProfitAggregateValue,
+			"actual", expectedProfitAggregateValue)
+		assertEqualDecimals(t, expectedProfitAggregateValue, actualProfitAggregateValue)
 	}
 }
 
@@ -128,7 +145,7 @@ func TestProcessHistoryFileWashSaleEasy(t *testing.T) {
 		Year: 2024,
 		Path: "../test-data/testdata-wash-sale.csv",
 	}
-	saleAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, []string{}, []string{})
+	saleAggregates, profitAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, []string{}, []string{})
 
 	assert.NoError(t, err)
 	t.Log(profits.Overall)
@@ -136,6 +153,7 @@ func TestProcessHistoryFileWashSaleEasy(t *testing.T) {
 	assertEqualDecimals(t, decimal.NewFromInt(100), profits.Overall)
 	assertEqualDecimals(t, decimal.NewFromInt(1540), saleAggregates.Overall)
 	assertEqualDecimals(t, decimal.NewFromInt(-100), lossAggregates.Overall)
+	assertEqualDecimals(t, decimal.NewFromInt(-100), profitAggregates.Overall)
 
 }
 

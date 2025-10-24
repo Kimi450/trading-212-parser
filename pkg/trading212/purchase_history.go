@@ -16,21 +16,24 @@ type PurchaseHistory interface {
 	GetProfitForYear(year int) StockSummary
 	GetSaleAggregatesForYear(year int) StockSummary
 	GetLossAggregatesForYear(year int) StockSummary
+	GetProfitAggregatesForYear(year int) StockSummary
 }
 
 type PurchaseHistoryStruct struct {
-	recordQueue    RecordQueue
-	profits        map[int]StockSummary
-	saleAggregates map[int]StockSummary
-	lossAggregates map[int]StockSummary
+	recordQueue      RecordQueue
+	profits          map[int]StockSummary
+	saleAggregates   map[int]StockSummary
+	lossAggregates   map[int]StockSummary
+	profitAggregates map[int]StockSummary
 }
 
 func NewPurchaseHistory(recordQueue RecordQueue) PurchaseHistory {
 	return &PurchaseHistoryStruct{
-		recordQueue:    recordQueue,
-		profits:        make(map[int]StockSummary),
-		saleAggregates: make(map[int]StockSummary),
-		lossAggregates: make(map[int]StockSummary),
+		recordQueue:      recordQueue,
+		profits:          make(map[int]StockSummary),
+		saleAggregates:   make(map[int]StockSummary),
+		lossAggregates:   make(map[int]StockSummary),
+		profitAggregates: make(map[int]StockSummary),
 	}
 }
 
@@ -48,6 +51,10 @@ func (q *PurchaseHistoryStruct) GetSaleAggregatesForYear(year int) StockSummary 
 
 func (q *PurchaseHistoryStruct) GetLossAggregatesForYear(year int) StockSummary {
 	return q.lossAggregates[year]
+}
+
+func (q *PurchaseHistoryStruct) GetProfitAggregatesForYear(year int) StockSummary {
+	return q.profitAggregates[year]
 }
 
 func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) error {
@@ -74,6 +81,7 @@ func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) erro
 		existingYearProfit := q.profits[year]
 		existingYearSaleAggregate := q.saleAggregates[year]
 		existingYearLossAggregate := q.lossAggregates[year]
+		existingYearProfitAggregate := q.profitAggregates[year]
 
 		newRecordType := newRecord.GetType()
 		switch newRecordType {
@@ -85,6 +93,9 @@ func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) erro
 			if profit.LessThan(decimal.NewFromInt(0)) {
 				existingYearLossAggregate.Stock = existingYearLossAggregate.Stock.Add(profit)
 				q.lossAggregates[year] = existingYearLossAggregate
+			} else {
+				existingYearProfitAggregate.Stock = existingYearProfitAggregate.Stock.Add(profit)
+				q.profitAggregates[year] = existingYearProfitAggregate
 			}
 		case ETF:
 			existingYearProfit.ETF = existingYearProfit.ETF.Add(profit)
@@ -94,6 +105,9 @@ func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) erro
 			if profit.LessThan(decimal.NewFromInt(0)) {
 				existingYearLossAggregate.ETF = existingYearLossAggregate.ETF.Add(profit)
 				q.lossAggregates[year] = existingYearLossAggregate
+			} else {
+				existingYearProfitAggregate.ETF = existingYearProfitAggregate.ETF.Add(profit)
+				q.profitAggregates[year] = existingYearProfitAggregate
 			}
 		default:
 			return merry.Errorf("invalid record type: %s", newRecordType)

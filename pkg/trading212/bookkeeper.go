@@ -22,6 +22,7 @@ type BookKeeper interface {
 	GetProfitForYear(year int) StockSummary
 	GetSaleAggregatesForYear(year int) StockSummary
 	GetLossAggregatesForYear(year int) StockSummary
+	GetProfitAggregatesForYear(year int) StockSummary
 }
 
 func (b *BookKeeperStruct) Get(key string) PurchaseHistory {
@@ -102,6 +103,21 @@ func (b *BookKeeperStruct) GetLossAggregatesForYear(year int) StockSummary {
 	for _, ph := range b.book {
 		// get profit for each purchase history item for the year and sum it up
 		yearlySummary := ph.GetLossAggregatesForYear(year)
+		summary.ETF = summary.ETF.Add(yearlySummary.ETF)
+		summary.Stock = summary.Stock.Add(yearlySummary.Stock)
+	}
+	summary.Overall = summary.Stock.Add(summary.ETF)
+	return summary
+}
+
+func (b *BookKeeperStruct) GetProfitAggregatesForYear(year int) StockSummary {
+	summary := StockSummary{
+		ETF:   decimal.NewFromInt(0),
+		Stock: decimal.NewFromInt(0),
+	}
+	for _, ph := range b.book {
+		// get profit for each purchase history item for the year and sum it up
+		yearlySummary := ph.GetProfitAggregatesForYear(year)
 		summary.ETF = summary.ETF.Add(yearlySummary.ETF)
 		summary.Stock = summary.Stock.Add(yearlySummary.Stock)
 	}

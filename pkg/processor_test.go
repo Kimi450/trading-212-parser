@@ -51,6 +51,25 @@ func TestProcessHistoryFileFIFO(t *testing.T) {
 
 }
 
+func TestProcessHistoryFileCurrency(t *testing.T) {
+	log := logr.FromContextOrDiscard(context.TODO())
+
+	bookkeeper := trading212.NewBookkeeper()
+
+	historyFile := config.HistoryFile{
+		Year: 2024,
+		Path: "../test-data/testdata-currency.csv",
+	}
+	saleAggregates, profitAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, []string{}, []string{})
+
+	assert.NoError(t, err)
+	assertEqualDecimals(t, decimal.NewFromInt(42), profits.Overall)
+	assertEqualDecimals(t, decimal.NewFromInt(56), saleAggregates.Overall)
+	assertEqualDecimals(t, decimal.NewFromInt(0), lossAggregates.Overall)
+	assertEqualDecimals(t, decimal.NewFromInt(42), profitAggregates.Overall)
+
+}
+
 func TestProcessAllHistoryFiles(t *testing.T) {
 	log := logr.FromContextOrDiscard(context.TODO())
 

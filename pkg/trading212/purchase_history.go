@@ -73,7 +73,7 @@ func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) erro
 		q.recordQueue.Append(newRecord)
 	} else if strings.Contains(newRecord.Action, "sell") {
 		year := newRecord.GetYear()
-		profit, err := q.updateHistoryAndGetProfit(log, *newRecord)
+		sellPrice, profit, err := q.updateHistoryAndGetProfit(log, *newRecord)
 		if err != nil {
 			return merry.Errorf("failed to process new record: %w", err)
 		}
@@ -88,7 +88,7 @@ func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) erro
 		case Stock:
 			existingYearProfit.Stock = existingYearProfit.Stock.Add(profit)
 			q.profits[year] = existingYearProfit
-			existingYearSaleAggregate.Stock = existingYearSaleAggregate.Stock.Add(newRecord.Total)
+			existingYearSaleAggregate.Stock = existingYearSaleAggregate.Stock.Add(sellPrice)
 			q.saleAggregates[year] = existingYearSaleAggregate
 			if profit.LessThan(decimal.NewFromInt(0)) {
 				existingYearLossAggregate.Stock = existingYearLossAggregate.Stock.Add(profit)
@@ -100,7 +100,7 @@ func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) erro
 		case ETF:
 			existingYearProfit.ETF = existingYearProfit.ETF.Add(profit)
 			q.profits[year] = existingYearProfit
-			existingYearSaleAggregate.ETF = existingYearSaleAggregate.ETF.Add(newRecord.Total)
+			existingYearSaleAggregate.ETF = existingYearSaleAggregate.ETF.Add(sellPrice)
 			q.saleAggregates[year] = existingYearSaleAggregate
 			if profit.LessThan(decimal.NewFromInt(0)) {
 				existingYearLossAggregate.ETF = existingYearLossAggregate.ETF.Add(profit)
@@ -131,13 +131,13 @@ func TimeIsBetween(t, min, max time.Time) bool {
 // then this loss can only be offset against a gain on the sale of shares of
 // the same class which were purchased within 4 weeks of that sale.
 func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
-	log logr.Logger, sellRecord Record) (decimal.Decimal, error) {
-	var buyPrice, sellPrice, profit decimal.Decimal
+	log logr.Logger, sellRecord Record) (decimal.Decimal, decimal.Decimal, error) {
+	var buyPrice, sellPrice, profit, totalSale decimal.Decimal
 	var err error
 
 	for !sellRecord.NoOfShares.Equal(decimal.NewFromInt(0)) {
 		if q.recordQueue.Size() <= 0 {
-			return decimal.NewFromInt(0), merry.Errorf("not enough shares available to sell: %s", sellRecord.Ticker)
+			return sellPrice, profit, merry.Errorf("not enough shares available to sell: %s", sellRecord.Ticker)
 		}
 
 		currRecord := q.recordQueue.Peek(0)
@@ -154,13 +154,13 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 			// get price of shares to be sold
 			buyPrice, err = currRecord.GetActualPriceForQuantity(sellRecord.NoOfShares, true)
 			if err != nil {
-				return profit, merry.Errorf("failed to get buy price for sell action: %w", err)
+				return sellPrice, profit, merry.Errorf("failed to get buy price for sell action: %w", err)
 			}
 
 			// get price of sale action
 			sellPrice, err = sellRecord.GetActualPriceForQuantity(sellRecord.NoOfShares, false)
 			if err != nil {
-				return profit, merry.Errorf("failed to get sell price for sell action: %w", err)
+				return sellPrice, profit, merry.Errorf("failed to get sell price for sell action: %w", err)
 			}
 
 			sellRecord.NoOfShares = decimal.NewFromInt(0)
@@ -172,17 +172,17 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 			// sell off all stocks in this "buy record" to get the "buy price" at market value
 			buyPrice, err = currRecord.GetActualPriceForQuantity(currRecord.NoOfShares, true)
 			if err != nil {
-				return profit, merry.Errorf("failed to get price for sell action: %w", err)
+				return sellPrice, profit, merry.Errorf("failed to get price for sell action: %w", err)
 			}
 
 			// get the profit from the sale for the number of shares you bought above
 			sellPrice, err = sellRecord.GetActualPriceForQuantity(currRecorNoOfShares, false)
 			if err != nil {
-				return profit, merry.Errorf("failed to get price for sell action: %w", err)
+				return sellPrice, profit, merry.Errorf("failed to get price for sell action: %w", err)
 			}
 
 		}
-
+		totalSale = totalSale.Add(sellPrice)
 		profit = profit.Add(sellPrice.Sub(buyPrice))
 
 		if currRecord.NoOfShares.LessThanOrEqual(decimal.NewFromInt(0)) {
@@ -190,5 +190,5 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 			q.recordQueue.RemoveItem(currRecord)
 		}
 	}
-	return profit, nil
+	return totalSale, profit, nil
 }

@@ -140,25 +140,40 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 			return sellPrice, profit, merry.Errorf("not enough shares available to sell: %s", sellRecord.Ticker)
 		}
 
-		currRecord := q.recordQueue.Peek(0)
+		buyRecord := q.recordQueue.Peek(0)
 		lastRecord := q.recordQueue.Peek(q.recordQueue.Size() - 1)
 		if TimeIsBetween(lastRecord.Time, sellRecord.Time.AddDate(0, 0, -7*4), sellRecord.Time) {
 			// Fits the bill for LIFO
 			log.Info("LIFO processing...", "against", lastRecord)
-			currRecord = lastRecord
+			buyRecord = lastRecord
 		}
 
-		if sellRecord.NoOfShares.LessThanOrEqual(currRecord.NoOfShares) {
-			// more shares available than to sell
+		buyExchangeRateOverride := &buyRecord.ExchangeRate
+		if sellRecord.CurrencyTotal != buyRecord.CurrencyTotal &&
+			buyRecord.ExchangeRate.Equal(decimal.NewFromInt(1)) {
+			// this means that conversion was taken place after purchase and selling were done
+			// in the same currency as the buy. So we use the sell exchange rate to
+			// culculate the buy price too to have like-for-like calculations
 
+			buyExchangeRateOverride = &sellRecord.ExchangeRate
+			log.Info("currency override",
+				"old", buyRecord.ExchangeRate,
+				"new", buyExchangeRateOverride)
+		}
+
+		if sellRecord.NoOfShares.LessThanOrEqual(buyRecord.NoOfShares) {
+			// more shares available than to sell
+			// TODO: make this currency aware for sales in a diff currency than buy (to use the same exchjange rate as the sale)
 			// get price of shares to be sold
-			buyPrice, err = currRecord.GetActualPriceForQuantity(sellRecord.NoOfShares, true)
+			buyPrice, err = buyRecord.GetActualPriceForQuantity(
+				sellRecord.NoOfShares, buyExchangeRateOverride, true)
 			if err != nil {
 				return sellPrice, profit, merry.Errorf("failed to get buy price for sell action: %w", err)
 			}
 
 			// get price of sale action
-			sellPrice, err = sellRecord.GetActualPriceForQuantity(sellRecord.NoOfShares, false)
+			sellPrice, err = sellRecord.GetActualPriceForQuantity(
+				sellRecord.NoOfShares, nil, false)
 			if err != nil {
 				return sellPrice, profit, merry.Errorf("failed to get sell price for sell action: %w", err)
 			}
@@ -167,16 +182,18 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 
 		} else {
 			// save the value since the record is mutated
-			currRecorNoOfShares := currRecord.NoOfShares
+			currRecordNoOfShares := buyRecord.NoOfShares
 
 			// sell off all stocks in this "buy record" to get the "buy price" at market value
-			buyPrice, err = currRecord.GetActualPriceForQuantity(currRecord.NoOfShares, true)
+			buyPrice, err = buyRecord.GetActualPriceForQuantity(
+				buyRecord.NoOfShares, buyExchangeRateOverride, true)
 			if err != nil {
 				return sellPrice, profit, merry.Errorf("failed to get price for sell action: %w", err)
 			}
 
 			// get the profit from the sale for the number of shares you bought above
-			sellPrice, err = sellRecord.GetActualPriceForQuantity(currRecorNoOfShares, false)
+			sellPrice, err = sellRecord.GetActualPriceForQuantity(
+				currRecordNoOfShares, nil, false)
 			if err != nil {
 				return sellPrice, profit, merry.Errorf("failed to get price for sell action: %w", err)
 			}
@@ -185,9 +202,9 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 		totalSale = totalSale.Add(sellPrice)
 		profit = profit.Add(sellPrice.Sub(buyPrice))
 
-		if currRecord.NoOfShares.LessThanOrEqual(decimal.NewFromInt(0)) {
+		if buyRecord.NoOfShares.LessThanOrEqual(decimal.NewFromInt(0)) {
 			// get rid of record if it has no shares in it
-			q.recordQueue.RemoveItem(currRecord)
+			q.recordQueue.RemoveItem(buyRecord)
 		}
 	}
 	return totalSale, profit, nil

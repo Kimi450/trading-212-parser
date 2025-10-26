@@ -70,14 +70,22 @@ const (
 )
 
 // (floatQuantity * floatPriceShare / floatExchangeRate) - floatCurrencyConversionFee
-func (r *Record) GetActualPriceForQuantity(quantity decimal.Decimal, buy bool) (decimal.Decimal, error) {
+func (r *Record) GetActualPriceForQuantity(quantity decimal.Decimal,
+	conversionOverride *decimal.Decimal, buy bool) (decimal.Decimal, error) {
+
 	if r.NoOfShares.LessThan(quantity) {
 		return decimal.NewFromInt(0),
 			merry.Errorf("quantity value is more than available shares: Requested: %f Available: %f",
 				quantity, r.NoOfShares)
 	}
 	proportionalConversionFee := r.CurrencyConversionFee.Mul(quantity).Div(r.NoOfShares)
-	total := quantity.Mul(r.PriceShare).Div(r.ExchangeRate)
+
+	er := r.ExchangeRate
+	if conversionOverride != nil {
+		er = *conversionOverride
+	}
+	total := quantity.Mul(r.PriceShare).Div(er)
+
 	if buy {
 		// when selling, this fee is added to get the Total value
 		// This is because the total you get is after the fee is added to

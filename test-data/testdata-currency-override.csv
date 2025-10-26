@@ -1,10 +1,10 @@
 Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Stamp duty reserve tax,Currency (Stamp duty reserve tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)
-buy ,2024-01-01 00:00:00.000,,KIMI450,"Test stock",10,1,USD,1.6,,"EUR",6.35,"EUR",,,,,,TESTID,0.1,"EUR"
-buy ,2024-03-01 00:00:00.000,,KIMI450,"Test stock",5,2,USD,2.5,,"EUR",4.2,"EUR",,,,,,TESTID,0.2,"EUR"
+buy ,2024-01-01 00:00:00.000,,KIMI450,"Test stock",10,1,USD,1,,"EUR",10,"USD",,,,,,TESTID,0.0,"USD"
+buy ,2024-03-01 00:00:00.000,,KIMI450,"Test stock",5,2,USD,1,,"EUR",10,"USD",,,,,,TESTID,0.0,"USD"
 sell,2024-05-01 00:00:00.000,,KIMI450,"Test stock",8,2,USD,1.25,,"EUR",12.7,"EUR",,,,,,TESTID,0.1,"EUR"
 sell,2024-07-01 00:00:00.000,,KIMI450,"Test stock",4,10,USD,2,,"EUR",19.4,"EUR",,,,,,TESTID,0.6,"EUR"
 
-// (8*2/1.25-0.1) - (8*1/1.6+0.08)
+// (8*2/1.25-0.1) - (8*1/1.25)
 
-// (2*10/2-0.3) - (2*1/1.6+0.02)
-// (2*10/2-0.3) - (2*2/2.5+0.08)
+// (2*10/2-0.3) - (2*1/2)
+// (2*10/2-0.3) - (2*2/2)

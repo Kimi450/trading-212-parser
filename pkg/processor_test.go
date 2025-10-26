@@ -63,10 +63,29 @@ func TestProcessHistoryFileCurrency(t *testing.T) {
 	saleAggregates, profitAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, []string{}, []string{})
 
 	assert.NoError(t, err)
-	assertEqualDecimals(t, decimal.NewFromInt(42), profits.Overall)
-	assertEqualDecimals(t, decimal.NewFromInt(56), saleAggregates.Overall)
+	assertEqualDecimals(t, decimal.NewFromFloat(24.07), profits.Overall)
+	assertEqualDecimals(t, decimal.NewFromFloat(32.1), saleAggregates.Overall)
 	assertEqualDecimals(t, decimal.NewFromInt(0), lossAggregates.Overall)
-	assertEqualDecimals(t, decimal.NewFromInt(42), profitAggregates.Overall)
+	assertEqualDecimals(t, decimal.NewFromFloat(24.07), profitAggregates.Overall)
+
+}
+
+func TestProcessHistoryFileCurrencyOverride(t *testing.T) {
+	log := logr.FromContextOrDiscard(context.TODO())
+
+	bookkeeper := trading212.NewBookkeeper()
+
+	historyFile := config.HistoryFile{
+		Year: 2024,
+		Path: "../test-data/testdata-currency-override.csv",
+	}
+	saleAggregates, profitAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, []string{}, []string{})
+
+	assert.NoError(t, err)
+	assertEqualDecimals(t, decimal.NewFromFloat(22.7), profits.Overall)
+	assertEqualDecimals(t, decimal.NewFromFloat(32.1), saleAggregates.Overall)
+	assertEqualDecimals(t, decimal.NewFromInt(0), lossAggregates.Overall)
+	assertEqualDecimals(t, decimal.NewFromFloat(22.7), profitAggregates.Overall)
 
 }
 

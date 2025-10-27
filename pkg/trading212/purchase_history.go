@@ -62,7 +62,7 @@ func (q *PurchaseHistoryStruct) Process(log logr.Logger, newRecord *Record) erro
 		return nil
 	}
 
-	log.Info(fmt.Sprintf("%-12s", newRecord.Action),
+	log.V(0).Info(fmt.Sprintf("%-12s", newRecord.Action),
 		"ticker", fmt.Sprintf("%-5s", newRecord.Ticker),
 		"date", newRecord.Time.String(),
 		"PriceShare", fmt.Sprintf("%7s", newRecord.PriceShare.StringFixed(2)),
@@ -144,7 +144,7 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 		lastRecord := q.recordQueue.Peek(q.recordQueue.Size() - 1)
 		if TimeIsBetween(lastRecord.Time, sellRecord.Time.AddDate(0, 0, -7*4), sellRecord.Time) {
 			// Fits the bill for LIFO
-			log.Info("LIFO processing...", "against", lastRecord)
+			log.V(0).Info("LIFO processing...", "against", lastRecord)
 			buyRecord = lastRecord
 		}
 
@@ -156,7 +156,7 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 			// culculate the buy price too to have like-for-like calculations
 
 			buyExchangeRateOverride = &sellRecord.ExchangeRate
-			log.Info("currency override",
+			log.V(0).Info("currency override",
 				"old", buyRecord.ExchangeRate,
 				"new", buyExchangeRateOverride)
 		}

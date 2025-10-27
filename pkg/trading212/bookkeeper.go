@@ -51,7 +51,7 @@ func (b *BookKeeperStruct) Print(log logr.Logger) {
 
 	for k, v := range b.book {
 		for _, v2 := range v.GetRecordQueue().GetQueue() {
-			log.Info("test", "k", k,
+			log.V(0).Info("test", "k", k,
 				"NoOfShares", v2.NoOfShares,
 				"Price", v2.PriceShare,
 				"Total", v2.Total,

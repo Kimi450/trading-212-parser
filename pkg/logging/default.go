@@ -10,11 +10,12 @@ import (
 )
 
 // GetDefaultFileAndConsoleLogger configures and creates a logr.Logger instance
-func GetDefaultFileAndConsoleLogger(filePath string, jsonEncoding bool) (*zap.Logger, logr.Logger, error) {
+func GetDefaultFileAndConsoleLogger(filePath string, jsonEncoding bool, loggingLevel int) (*zap.Logger, logr.Logger, error) {
 	zapConfig := zap.NewProductionConfig()
 	zapConfig.Sampling = nil
 
-	zapConfig.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
+	zapConfig.Level = zap.NewAtomicLevelAt(zapcore.InfoLevel - zapcore.Level(loggingLevel))
+
 	zapConfig.OutputPaths = []string{"stderr", filePath}
 	zapConfig.ErrorOutputPaths = []string{"stderr", filePath}
 	zapConfig.DisableStacktrace = false

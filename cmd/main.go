@@ -40,9 +40,11 @@ func (i *arrayFlags) Set(value string) error {
 
 type ScriptArgs struct {
 	LogBundleBaseDir string
-	Config           string
-	AllowTickers     arrayFlags
-	SkipTickers      arrayFlags
+	LoggingLevel     int
+
+	Config       string
+	AllowTickers arrayFlags
+	SkipTickers  arrayFlags
 }
 
 func (scriptArgs *ScriptArgs) parseArgs() error {
@@ -67,6 +69,9 @@ func (scriptArgs *ScriptArgs) parseArgs() error {
 	logBundleBaseDir := flag.String("log-bundle-base-dir", cwd,
 		"Base directory for the log bundle generated")
 
+	loggingLevel := flag.Int("v", 0,
+		"Turn on debug level logs for an audit trace")
+
 	config := flag.String("config",
 		path.Join(cwd, "configs", "config.json"),
 		"Location of the script's config")
@@ -74,6 +79,8 @@ func (scriptArgs *ScriptArgs) parseArgs() error {
 	flag.Parse()
 
 	scriptArgs.LogBundleBaseDir = *logBundleBaseDir
+	scriptArgs.LoggingLevel = *loggingLevel
+
 	scriptArgs.Config = *config
 	scriptArgs.AllowTickers = allowTickers
 	scriptArgs.SkipTickers = skipTickers
@@ -108,5 +115,5 @@ func main() {
 		panic(fmt.Errorf("failed to validate args: %w", err))
 	}
 
-	pkg.Process(scriptArgs.LogBundleBaseDir, scriptArgs.Config, scriptArgs.AllowTickers, scriptArgs.SkipTickers)
+	pkg.Process(scriptArgs.LogBundleBaseDir, scriptArgs.LoggingLevel, scriptArgs.Config, scriptArgs.AllowTickers, scriptArgs.SkipTickers)
 }

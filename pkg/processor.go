@@ -23,7 +23,7 @@ type Report struct {
 	ProfitAggregatesData map[int]trading212.StockSummary
 }
 
-func getLog(logBundleBaseDir string) (logr.Logger, string, error) {
+func getLog(logBundleBaseDir string, loggingLevel int) (logr.Logger, string, error) {
 	logBundleDir := path.Join(logBundleBaseDir,
 		config.GetDateTimePrefixForFile()+"-log-bundle")
 	if _, err := os.Stat(logBundleDir); errors.Is(err, os.ErrNotExist) {
@@ -35,27 +35,28 @@ func getLog(logBundleBaseDir string) (logr.Logger, string, error) {
 
 	logFilePath := path.Join(logBundleDir,
 		fmt.Sprintf("%s-script-logs.txt", config.GetDateTimePrefixForFile()))
-	_, log, err := logging.GetDefaultFileAndConsoleLogger(logFilePath, false)
+	_, log, err := logging.GetDefaultFileAndConsoleLogger(logFilePath, false, loggingLevel)
 	if err != nil {
 		return logr.Logger{}, "", fmt.Errorf("failed to setup logger: %w", err)
 	}
 	return log, logBundleDir, nil
 }
 
-func Process(logBundleBaseDir, configFilePath string, allowTickers, skipTickers []string) {
+func Process(logBundleBaseDir string, loggingLevel int,
+	configFilePath string, allowTickers, skipTickers []string) {
 	var err error
 	log := logr.FromContextOrDiscard(context.TODO())
 	logBundleDir := ""
 	if logBundleBaseDir != "" {
-		log, logBundleDir, err = getLog(logBundleBaseDir)
+		log, logBundleDir, err = getLog(logBundleBaseDir, loggingLevel)
 		if err != nil {
 			panic(err)
 		}
 	}
 
-	log.Info("log bundle directory", "filePath", logBundleDir)
+	log.V(0).Info("log bundle directory", "filePath", logBundleDir)
 
-	log.Info("running",
+	log.V(0).Info("running",
 		"logBundleDir", logBundleDir,
 		"configFilePath", configFilePath,
 		"allowTickers", allowTickers,
@@ -85,7 +86,7 @@ func processAllHistoryFiles(log logr.Logger, allowTickers, skipTickers []string,
 	})
 
 	for _, historyFile := range configData.HistoryFiles {
-		log.Info("processing file", "year", historyFile.Year, "path", historyFile.Path)
+		log.V(0).Info("processing file", "year", historyFile.Year, "path", historyFile.Path)
 
 		saleAggregates, profitAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, allowTickers, skipTickers)
 		if err != nil {
@@ -94,22 +95,22 @@ func processAllHistoryFiles(log logr.Logger, allowTickers, skipTickers []string,
 			os.Exit(1)
 		}
 
-		log.Info("summary",
+		log.V(0).Info("summary",
 			"year", historyFile.Year,
 			"profits", profits,
 		)
 
-		log.Info("summary",
+		log.V(0).Info("summary",
 			"year", historyFile.Year,
 			"sale aggregates", saleAggregates,
 		)
 
-		log.Info("summary",
+		log.V(0).Info("summary",
 			"year", historyFile.Year,
 			"loss aggregates", lossAggregates,
 		)
 
-		log.Info("summary",
+		log.V(0).Info("summary",
 			"year", historyFile.Year,
 			"profit aggregates", profitAggregates,
 		)

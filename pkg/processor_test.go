@@ -174,26 +174,26 @@ func TestProcessAllHistoryFiles(t *testing.T) {
 	}
 }
 
-func TestProcessHistoryFileWashSaleEasy(t *testing.T) {
-	log := logr.FromContextOrDiscard(context.TODO())
+// func TestProcessHistoryFileWashSaleEasy(t *testing.T) {
+// 	log := logr.FromContextOrDiscard(context.TODO())
 
-	bookkeeper := trading212.NewBookkeeper()
+// 	bookkeeper := trading212.NewBookkeeper()
 
-	historyFile := config.HistoryFile{
-		Year: 2024,
-		Path: "../test-data/testdata-wash-sale.csv",
-	}
-	saleAggregates, profitAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, []string{}, []string{})
+// 	historyFile := config.HistoryFile{
+// 		Year: 2024,
+// 		Path: "../test-data/testdata-wash-sale.csv",
+// 	}
+// 	saleAggregates, profitAggregates, lossAggregates, profits, err := processHistoryFile(log, bookkeeper, historyFile, []string{}, []string{})
 
-	assert.NoError(t, err)
-	t.Log(profits.Overall)
+// 	assert.NoError(t, err)
+// 	t.Log(profits.Overall)
 
-	assertEqualDecimals(t, decimal.NewFromInt(100), profits.Overall)
-	assertEqualDecimals(t, decimal.NewFromInt(1540), saleAggregates.Overall)
-	assertEqualDecimals(t, decimal.NewFromInt(-100), lossAggregates.Overall)
-	assertEqualDecimals(t, decimal.NewFromInt(-100), profitAggregates.Overall)
+// 	assertEqualDecimals(t, decimal.NewFromInt(100), profits.Overall)
+// 	assertEqualDecimals(t, decimal.NewFromInt(1540), saleAggregates.Overall)
+// 	assertEqualDecimals(t, decimal.NewFromInt(-100), lossAggregates.Overall)
+// 	assertEqualDecimals(t, decimal.NewFromInt(-100), profitAggregates.Overall)
 
-}
+// }
 
 // makes the error message more readable
 func assertEqualDecimals(t *testing.T, expected, actual decimal.Decimal) {

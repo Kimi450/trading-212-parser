@@ -177,6 +177,23 @@ In the context of the previous rule (about reacquiring shares), these sections w
 
 </details>
 
+And from a call with Revenue as well, I understood the following:
+```
+- Guidance from Revenue on the following topics (use at your own risk - not an advisor)
+    - How to calculate taxes for USD vests (what conversion rates to use - sell or vest dates)
+        - The calcultion can be done based on the conversion rate on the day or a yearly average
+        - They also recommend submitting the calculation along with the returns (audit logs basically)
+    - Which dates to use for calculations, vesting or settlement dates?
+        - Vesting date since this is when the income tax is calculated on it
+    - What about CGT implications from shares sold to cover income tax?
+        - They say it is reasonable to assume that since income tax is done at source, so are all other tax implications from this sale (but I am skeptical on this)
+    - Filing for ETFs
+        - ROS/Form11 does not need to be used unless you have a gain of 5,000 EUR or have 30,000 EUR sale gross
+            - Chargeable persons need to file it this way, defined by: https://www.revenue.ie/en/tax-professionals/tdm-wm/income-tax-capital-gains-tax-corporation-tax/part-41a/41a-01-01.pdf
+        - You can file and declare gains/losses on the CG1 form under the "Offshore Funds" section
+- Whatever methodology is used, follow the same throughout (in accordance with consistent accounting practice)
+```
+
 ## Notes
 
 ### Ringfenced losses

@@ -182,9 +182,9 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 			}
 
 			log.V(2).Info("sold buy record partially",
-				"initial", logBuyRecordShareCount.String(),
+				"initialBuy", logBuyRecordShareCount.String(),
 				"sold", logSellRecordShareCount.String(),
-				"left", buyRecord.NoOfShares.String(),
+				"leftBuy", buyRecord.NoOfShares.String(),
 				"calculated buy record price", buyPrice.String(),
 				"calculated sell record price", sellPrice.String())
 
@@ -207,19 +207,19 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 				return sellPrice, profit, merry.Errorf("failed to get price for sell action: %w", err)
 			}
 
-			log.V(2).Info("sold buy record fully",
-				"initial", logSellRecordShareCount.String(),
+			log.V(2).Info("sold buy record fully, ",
+				"initialToSell", logSellRecordShareCount.String(),
 				"sold", logBuyRecordShareCount.String(),
-				"left", sellRecord.NoOfShares.String(),
+				"leftToSell", sellRecord.NoOfShares.String(),
 				"calculated buy record price", buyPrice.String(),
 				"calculated sell record price", sellPrice.String())
 		}
 		totalSale = totalSale.Add(sellPrice)
 		profit = profit.Add(sellPrice.Sub(buyPrice))
 
-		log.V(2).Info("calculated data",
-			"totalSale", totalSale.String(),
-			"transactionProfit", sellPrice.Sub(buyPrice),
+		log.V(2).Info("interim data",
+			"sale", totalSale.String(),
+			"interimProfit", sellPrice.Sub(buyPrice),
 			"cumulativeProfit", profit.String())
 
 		if buyRecord.NoOfShares.LessThanOrEqual(decimal.NewFromInt(0)) {
@@ -228,5 +228,9 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 			log.V(2).Info("cleaning up empty buy record")
 		}
 	}
+
+	log.V(2).Info("transaction result data",
+		"sale", totalSale.String(),
+		"cumulativeProfit", profit.String())
 	return totalSale, profit, nil
 }

@@ -145,7 +145,7 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 		if TimeIsBetween(lastRecord.Time, sellRecord.Time.AddDate(0, 0, -7*4), sellRecord.Time) {
 			// Fits the bill for LIFO
 			buyRecord = lastRecord
-			log.V(1).Info("LIFO processing...",
+			log.V(2).Info("LIFO processing...",
 				"buyRecord", buyRecord,
 				"sellRecord", sellRecord)
 		}
@@ -158,7 +158,7 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 			// culculate the buy price too to have like-for-like calculations
 
 			buyExchangeRateOverride = &sellRecord.ExchangeRate
-			log.V(1).Info("currency override",
+			log.V(2).Info("currency override",
 				"old", buyRecord.ExchangeRate,
 				"new", buyExchangeRateOverride)
 		}
@@ -181,7 +181,7 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 				return sellPrice, profit, merry.Errorf("failed to get sell price for sell action: %w", err)
 			}
 
-			log.V(2).Info("sold buy record partially",
+			log.V(3).Info("sold buy record partially",
 				"initialBuy", logBuyRecordShareCount.String(),
 				"sold", logSellRecordShareCount.String(),
 				"leftBuy", buyRecord.NoOfShares.String(),
@@ -207,7 +207,7 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 				return sellPrice, profit, merry.Errorf("failed to get price for sell action: %w", err)
 			}
 
-			log.V(2).Info("sold buy record fully, ",
+			log.V(3).Info("sold buy record fully",
 				"initialToSell", logSellRecordShareCount.String(),
 				"sold", logBuyRecordShareCount.String(),
 				"leftToSell", sellRecord.NoOfShares.String(),
@@ -220,7 +220,7 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 		log.V(2).Info("interim data",
 			"sale", totalSale.String(),
 			"interimProfit", sellPrice.Sub(buyPrice),
-			"cumulativeProfit", profit.String())
+			"transactionCumulativeProfit", profit.String())
 
 		if buyRecord.NoOfShares.LessThanOrEqual(decimal.NewFromInt(0)) {
 			// get rid of record if it has no shares in it
@@ -229,8 +229,8 @@ func (q *PurchaseHistoryStruct) updateHistoryAndGetProfit(
 		}
 	}
 
-	log.V(2).Info("transaction result data",
+	log.V(1).Info("transaction result data",
 		"sale", totalSale.String(),
-		"cumulativeProfit", profit.String())
+		"profit", profit.String())
 	return totalSale, profit, nil
 }

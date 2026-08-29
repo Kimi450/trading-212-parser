@@ -10,7 +10,7 @@ import (
 
 type RecordDTO struct {
 	Action                        string `json:"Action"`
-	Time                          string `json:"Time"`
+	Time                          string `json:"Time (UTC)"`
 	Isin                          string `json:"ISIN"`
 	Ticker                        string `json:"Ticker"`
 	Name                          string `json:"Name"`
@@ -40,7 +40,7 @@ type Record struct {
 	SplitAdjusted
 
 	Action                        string          `json:"Action"`
-	Time                          time.Time       `json:"Time"`
+	Time                          time.Time       `json:"Time (UTC)"`
 	Isin                          string          `json:"ISIN"`
 	Ticker                        string          `json:"Ticker"`
 	Name                          string          `json:"Name"`

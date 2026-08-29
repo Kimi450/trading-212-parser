@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/shopspring/decimal"
 
 	"github.com/ansel1/merry/v2"
@@ -52,7 +53,7 @@ func (o *Scanner) toJson() string {
 	return json
 }
 
-func (o *Scanner) ToRecord() (Record, error) {
+func (o *Scanner) ToRecord(log logr.Logger) (Record, error) {
 	record := Record{}
 
 	jsonString := []byte(o.toJson())
@@ -65,7 +66,7 @@ func (o *Scanner) ToRecord() (Record, error) {
 	// cannot find a cleaner and simpler way to do this
 	record.Action = recordDto.Action
 	recordDto.Time = strings.Replace(recordDto.Time, "\xc2\xa0", " ", -1)
-	parsedTime, err := time.Parse("2006-01-02 15:04:05", recordDto.Time)
+	parsedTime, err := time.Parse("2006-01-02 15:04:05+00:00", recordDto.Time)
 	if err != nil {
 		return record, merry.Errorf("failed to parse time: %w", err)
 	}

@@ -141,7 +141,7 @@ func processHistoryFile(log logr.Logger, bookkeeper trading212.BookKeeper,
 	// read csv values using csv.Reader
 	csvReader := trading212.NewScanner(file)
 	for csvReader.Scan() {
-		record, err := csvReader.ToRecord()
+		record, err := csvReader.ToRecord(log)
 		if err != nil {
 			return trading212.StockSummary{}, trading212.StockSummary{},
 				trading212.StockSummary{}, trading212.StockSummary{},
